@@ -29,8 +29,12 @@
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
     .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:16px;align-items:center;width:100%;max-width:520px;padding:28px;border-radius:16px}
-    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;margin-bottom:6px}
+    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:#fff;font-weight:800;margin-bottom:6px}
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
+    .menu-btn span.right{color:var(--amber);font-weight:700}
+
+    /* safety: ensure toggle works even if JS module errored */
+    #menuToggle[aria-label]{outline:none}
 
     @media(max-width:920px){.grid{grid-template-columns:1fr;}.container{padding:84px 12px 60px}}
   </style>
@@ -44,12 +48,13 @@
     <div aria-hidden="true" style="width:44px"></div>
   </header>
 
-  <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
+  <!-- Add a simple inline toggle so menu opens even if module JS fails -->
+  <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster" onclick="(function(o){ o.classList.toggle('hidden'); })(document.getElementById('overlay'))">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
 
   <!-- Overlay (menu) -->
-  <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
+  <div class="overlay hidden" id="overlay" role="dialog" aria-label="Ana Menü">
     <svg class="honey-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;opacity:0.07;pointer-events:none">
       <defs>
         <pattern id="hex" width="60" height="52" patternUnits="userSpaceOnUse">
@@ -60,11 +65,11 @@
     </svg>
 
     <div class="menu" id="menu">
-      <button class="menu-btn" data-target="top">Ana Sayfa <span>Home</span></button>
-      <button class="menu-btn" data-target="hive">Kovan Sağlığı <span id="hiveBadge">—</span></button>
-      <button class="menu-btn" data-target="stats">İstatistikler <span>7g</span></button>
-      <button class="menu-btn" data-target="pedigree">Pedigree <span>Tree</span></button>
-      <button class="menu-btn" data-target="settings">Ayarlar <span>⚙</span></button>
+      <button class="menu-btn" data-target="top">Ana Sayfa <span class="right">Home</span></button>
+      <button class="menu-btn" data-target="hive">Kovan Sağlığı <span id="hiveBadge" class="right">—</span></button>
+      <button class="menu-btn" data-target="stats">İstatistikler <span class="right">7g</span></button>
+      <button class="menu-btn" data-target="pedigree">Pedigree <span class="right">Tree</span></button>
+      <button class="menu-btn" data-target="settings">Ayarlar <span class="right">⚙</span></button>
     </div>
   </div>
 
