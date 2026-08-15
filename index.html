@@ -8,7 +8,52 @@
     :root{--bg:#f8fafc;--card:#fff;--muted:#6b7280;--accent:#f59e0b}
     *{box-sizing:border-box}
     body{font-family:Inter, system-ui, Arial;background:var(--bg);color:#111;margin:0;padding:20px}
-    .container{max-width:980px;margin:0 auto}
+
+    /* Sidebar */
+    .sidebar{
+      position:fixed;
+      left:24px;
+      top:110px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      z-index:1200;
+      transition:transform .25s ease,opacity .25s ease;
+    }
+    .side-btn{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-width:180px;
+      padding:10px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98));
+      border-radius:12px;
+      border:1px solid rgba(2,6,23,0.06);
+      box-shadow:0 6px 18px rgba(2,6,23,0.06);
+      cursor:pointer;
+      color:#0f172a;
+      font-weight:600;
+      text-decoration:none;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .side-btn:active{ transform:translateY(1px) }
+    .side-btn .label{display:flex;align-items:center;gap:10px}
+    .side-btn .label .dot{width:10px;height:10px;border-radius:50%;}
+    .side-btn svg{width:22px;height:22px;opacity:.95}
+
+    /* small colored left stripes (1-2px) */
+    .side-btn[data-color="yellow"]{ border-left:2px solid #f59e0b }
+    .side-btn[data-color="green"]{ border-left:2px solid #10b981 }
+    .side-btn[data-color="red"]{ border-left:2px solid #ef4444 }
+    .side-btn[data-color="purple"]{ border-left:2px solid #7c3aed }
+
+    /* subtle hover */
+    .side-btn:hover{ box-shadow:0 10px 30px rgba(2,6,23,0.12) }
+
+    /* Main container spacing to avoid overlap */
+    .container{max-width:980px;margin:0 auto;padding-left:60px}
+
     header{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
     .controls{display:flex;gap:8px}
     .controls input{flex:1;padding:8px;border-radius:8px;border:1px solid #e5e7eb}
@@ -20,12 +65,53 @@
     .grid{display:flex;gap:8px;flex-wrap:wrap}
     .grid .day{flex:1 1 150px;background:#f3f4f6;padding:8px;border-radius:8px}
     footer{margin-top:8px;color:var(--muted)}
-    @media(max-width:600px){.current-grid{grid-template-columns:1fr}}
+    @media(max-width:900px){
+      .sidebar{left:12px;top:98px}
+      .container{padding-left:20px}
+      .side-btn{min-width:140px;padding:8px 10px}
+    }
+    @media(max-width:520px){
+      /* on very small screens collapse sidebar to top-left small stack */
+      .sidebar{left:12px;top:84px;gap:8px}
+      .container{padding-left:12px}
+    }
     canvas{width:100%;height:200px}
   </style>
 </head>
 <body>
-  <main class="container">
+  <!-- Sidebar: visible only on the main page (index.html) -->
+  <nav class="sidebar" aria-label="Ana sayfa kısayolları">
+    <a class="side-btn" data-color="yellow" href="#top" title="Ana Sayfa">
+      <span class="label"><span class="dot" style="background:#f59e0b"></span>Ana Sayfa</span>
+      <!-- bee icon -->
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z" fill="#111" opacity="0.95"/>
+      </svg>
+    </a>
+
+    <a class="side-btn" data-color="green" href="#current" title="Kovan Sağlığı">
+      <span class="label"><span class="dot" style="background:#10b981"></span>Kovan Sağlığı</span>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2C9.5 2 7.4 3.5 6.5 6C5.5 8.5 6 11 7.8 12.8C6.9 13.7 6.4 14.9 6.6 16.1C6.9 17.6 8.1 18.7 9.6 19C11 19.3 12.4 19 13.6 18.2C14.8 17.4 15.6 16 15.8 14.4C16.9 13.8 17.6 12.8 17.8 11.7C18.3 9.6 16.9 7.5 14.8 6.9C13.4 6.5 11.7 6 11 4.5C10.6 3.7 11 2 12 2Z" fill="#111"/>
+      </svg>
+    </a>
+
+    <a class="side-btn" data-color="purple" href="#daily" title="İstatistikler">
+      <span class="label"><span class="dot" style="background:#7c3aed"></span>İstatistikler</span>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M4 19H8V10H4V19ZM10 19H14V5H10V19ZM16 19H20V13H16V19Z" fill="#111"/>
+      </svg>
+    </a>
+
+    <a class="side-btn" data-color="red" href="#footer" title="Ayarlar">
+      <span class="label"><span class="dot" style="background:#ef4444"></span>Ayarlar</span>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zM19.4 13a7.7 7.7 0 0 0 .1-1 7.7 7.7 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.7l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a8 8 0 0 0-1.7-1l-.4-2.7A.5.5 0 0 0 12.6 2h-4a.5.5 0 0 0-.5.4L7.6 5.1a8 8 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2L.8 8.8a.5.5 0 0 0 .1.7L3 11a7.7 7.7 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.7l2 3.4c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.7c.1.3.4.4.7.4h4c.3 0 .6-.1.7-.4l.4-2.7c.6-.3 1.2-.7 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.7L19.4 13z" fill="#111"/>
+      </svg>
+    </a>
+  </nav>
+
+  <main class="container" id="top">
     <header>
       <h1>Polinasyon Hava Paneli (Demo)</h1>
       <div class="controls">
@@ -57,13 +143,13 @@
       <div id="dailyList" class="grid"></div>
     </section>
 
-    <footer>
+    <footer id="footer">
       <small>Veri kaynağı: Open-Meteo (ücretsiz, anahtarsız)</small>
     </footer>
   </main>
 
   <script>
-    // Kısa ve çalışır weather dashboard JS
+    // Kısa ve çalışır weather dashboard JS (ufak hata toleransı ve daha iyi status mesajları)
     const statusEl = document.getElementById('status');
     const btnFetch = document.getElementById('btnFetch');
     const btnUseGeo = document.getElementById('btnUseGeo');
@@ -120,7 +206,7 @@
         try {
           const q = encodeURIComponent(input);
           const geoUrl = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`;
-          const r = await fetch(geoUrl, {headers:{'User-Agent':'polinasyon-weather/1.0 (contact)'}});
+          const r = await fetch(geoUrl); // remove custom User-Agent — browsers block setting it
           const arr = await r.json();
           if (!arr || !arr[0]) { status('Konum bulunamadı'); return; }
           const lat = parseFloat(arr[0].lat), lon = parseFloat(arr[0].lon);
@@ -226,8 +312,10 @@
       ctx.fillText(times[times.length-1].slice(11,16), w-pad-30, h-6);
     }
 
-    // Örnek başlangıç: Ankara koordinatlarını yerleştir
+    // Örnek başlangıç: Ankara koordinatlarını yerleştir ve otomatik fetch et
     locInput.value = '39.92077,32.85411';
+    // otomatik yükle bir saniye sonra (sayfa açıldığında birden fazla istek engellenmesi için küçük gecikme)
+    setTimeout(()=>{ try{ btnFetch.click(); }catch(e){} }, 800);
   </script>
 </body>
 </html>
