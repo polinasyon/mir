@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Polinasyon / MIR — Scaffold v2 (Özet Sayfa)</title>
+  <style>
+    body{font-family:Inter, system-ui, Arial;background:#f8fafc;color:#0f172a;margin:0;padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    h1{margin:0 0 8px}
+    .card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 8px 28px rgba(2,6,23,0.06);margin-bottom:12px}
+    a{color:#0ea5a0}
+    pre{background:#0f172a;color:#f8fafc;padding:12px;border-radius:6px;overflow:auto}
+    ul{margin:8px 0 0 20px}
+    .muted{color:#6b7280}
+    .btn{display:inline-block;padding:8px 12px;background:#f59e0b;color:#04263b;border-radius:8px;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Polinasyon / MIR — Scaffold v2 (Özet Sayfa)</h1>
+    <p class="muted">Branch: <strong>feature/scaffold-v2-1</strong></p>
+
+    <div class="card">
+      <h2>Amac</h2>
+      <p>Bu sayfa, branch <code>feature/scaffold-v2-1</code>'de yaptığım değişiklikleri ve nasıl test edileceğini hızlıca gösterir. Sen (arıcı) index.html üzerinden ne eklendiğini görebilirsin; istersen ben PR açıp değişiklikleri main'e merge edebilirim.</p>
+    </div>
+
+    <div class="card">
+      <h2>Eklenen dosyalar (kısa)</h2>
+      <ul>
+        <li><strong>src/main.js</strong> — uygulamayı başlatan ESM giriş noktası</li>
+        <li><strong>src/app.js</strong> — scaffold integrator (uygulama ile pedigree modülünü bağlar)</li>
+        <li><strong>src/api-client.js</strong> — fotoğrafı model endpoint'ine POST eden küçük wrapper (mock destekli)</li>
+        <li><strong>src/pedigree.js</strong> — UI: floating buton + modal, fotoğraf yükleme ve sonucu kovana kaydetme</li>
+        <li><strong>data/floraveritabani.sample.json</strong> — örnek flora verisi</li>
+        <li><strong>data/bolgeharitasi.sample.json</strong> — örnek bölge haritası</li>
+        <li><strong>docs/PEDIGREE.md</strong> — Pedigree akışı ve FastAPI notları</li>
+        <li><strong>README.md</strong>, <strong>LICENSE</strong>, <strong>.gitignore</strong></li>
+      </ul>
+
+      <p>Dosyaların ham hallerini görmek için bağlantılar:</p>
+      <ul>
+        <li><a href="https://github.com/polinasyon/mir/blob/feature/scaffold-v2-1/src/pedigree.js" target="_blank">src/pedigree.js</a></li>
+        <li><a href="https://github.com/polinasyon/mir/blob/feature/scaffold-v2-1/src/api-client.js" target="_blank">src/api-client.js</a></li>
+        <li><a href="https://github.com/polinasyon/mir/blob/feature/scaffold-v2-1/README.md" target="_blank">README.md</a></li>
+        <li><a href="https://github.com/polinasyon/mir/tree/feature/scaffold-v2-1" target="_blank">Branch kökü (feature/scaffold-v2-1)</a></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Hızlı test — Yerelde</h2>
+      <ol>
+        <li>Repo'yu klonla (veya zaten klonluysa fetch yap):
+          <pre>git clone https://github.com/polinasyon/mir.git
+cd mir
+git fetch origin
+git checkout feature/scaffold-v2-1</pre>
+        </li>
+        <li>Basit bir HTTP sunucusu başlat (örnek):
+          <pre>python -m http.server 8000</pre>
+          Sonra tarayıcıda <code>http://localhost:8000</code> aç.
+        </li>
+        <li>Sayfa yüklendiğinde uygulamanın sağ alt köşesinde turuncu "Pedigree" butonu göreceksin. Butona tıkla, kovan seç, fotoğraf yükleyip Gönder'e bas; mock model yanıtı dönecek ve kovan verisine kaydetme denenecek.</li>
+      </ol>
+      <p class="muted">Not: Eğer gerçek Hugging Face FastAPI endpoint'in varsa bana URL ver; gerçek POST entegrasyonunu ekleyeyim.</p>
+    </div>
+
+    <div class="card">
+      <h2>Yayınlama / PR</h2>
+      <p>İstersen ben bu branch için bir Pull Request açarım ve değişiklikleri main'e merge etmeye hazır hale getiririm. Devam etmemi istersen <a class="btn" href="#" id="open-pr">PR oluştur</a></p>
+    </div>
+
+    <div class="card">
+      <h2>İleri adımlar önerisi</h2>
+      <ul>
+        <li>Pedigree module için CORS izinleriyle Hugging Face FastAPI endpoint bağla (veya bir proxy ekle).</li>
+        <li>Service Worker'a <code>src/pedigree.js</code> önbelleklemesini ekle (offline toleransı için).</li>
+        <li>UI/UX iyileştirmeleri: fotoğraf önizlemesi, yükleme sıkıştırma, hata iletimleri.</li>
+      </ul>
+    </div>
+
+    <footer class="muted">Hazır. Bana <strong>"PR aç"</strong> veya <strong>"HF URL: ..."</strong> yaz, ben devam edeyim.</footer>
+  </div>
+
+  <script>
+    document.getElementById('open-pr').addEventListener('click', async (e) => {
+      e.preventDefault();
+      alert('Ben PR oluşturabilirim — onay ver, ben PR açıp linkini buraya bırakırım.');
+    });
+  </script>
+</body>
+</html>
