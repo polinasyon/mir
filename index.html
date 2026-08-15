@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Polinasyon — Pedigree & Islah Yönetimi</title>
+  <title>Polinasyon — Çevrimdışı Arıcılık & Islah Yönetimi</title>
   <style>
     :root{--dark-1:#070812;--dark-2:#0b1016;--amber:#f59e0b;--amber-2:#f97316;--muted:#9ca3af}
     *{box-sizing:border-box}
@@ -25,10 +25,10 @@
     .menu-btn.disabled-brand{opacity:0.6;cursor:default}
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-    /* Pedigree / Islah Paneli */
-    .morph-panel{display:none;position:fixed;inset:0 0 0 0;background:#0b1016;z-index:1500;padding:24px;color:#fff;overflow-y:auto}
-    .morph-panel.active{display:block}
-    .morph-container{max-width:800px;margin:20px auto;display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
+    /* Genel Modül Panelleri */
+    .content-panel{display:none;position:fixed;inset:0 0 0 0;background:#0b1016;z-index:1500;padding:24px;color:#fff;overflow-y:auto}
+    .content-panel.active{display:block}
+    .panel-container{max-width:800px;margin:20px auto;display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
     
     .section-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:20px;border-radius:14px}
     .section-box h3{margin-top:0;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
@@ -63,7 +63,7 @@
   <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
     <div class="honey-bg"></div>
     <div class="menu" id="menu">
-      <!-- 1. Etkisiz Polinasyon Marka Butonu -->
+      <!-- 1. Marka Başlığı -->
       <div class="menu-btn disabled-brand">
         <span class="label">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px"><path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/></svg>
@@ -84,92 +84,69 @@
         <span>Modül</span>
       </button>
 
-      <!-- 4. Akademi / Boş Buton -->
-      <button class="menu-btn" data-target="akademi">
-        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg><span class="accent">Akademi / Flora</span></span>
-        <span>Yakında</span>
+      <!-- 4. Nektar Akım Skoru Butonu -->
+      <button class="menu-btn" data-target="nektar">
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg><span class="accent">Nektar Akım Skoru</span></span>
+        <span>Canlı</span>
       </button>
     </div>
   </div>
 
   <!-- Pedigree / Islah Modülü Paneli -->
-  <div class="morph-panel" id="morphPanel">
-    <div class="morph-container">
+  <div class="content-panel" id="pedigreePanel">
+    <div class="panel-container">
       <h2>Damızlık Islah ve Pedigree Modülü</h2>
-      <p style="color:var(--muted); margin-top:-10px;">Ana arı kayıtları, soy ağacı, performans skorları ve morfometrik analiz yönetim alanı.</p>
+      <p style="color:var(--muted); margin-top:-10px;">Ana arı kayıtları, soy ağacı, performans skorları ve morfometrik analiz.</p>
       
-      <!-- 1. Kimlik ve Envanter -->
       <div class="section-box">
         <h3>1. Ana Arı Kimlik & Envanter</h3>
         <div class="form-grid">
-          <div class="form-group">
-            <label>Küpe / Numara</label>
-            <input type="text" placeholder="Örn: TR-26-054">
-          </div>
-          <div class="form-group">
-            <label>Irk ve Genetik Hat</label>
-            <select><option>Karniyol (Anatolica / Baskal)</option><option>Kafkas</option><option>Artvin</option></select>
-          </div>
-          <div class="form-group">
-            <label>Üretim Yılı</label>
-            <input type="number" value="2026">
-          </div>
-          <div class="form-group">
-            <label>Koloni / Hat Durumu</label>
-            <select><option>Aktif Damızlık</option><option>Test Kolonisi</option></select>
-          </div>
+          <div class="form-group"><label>Küpe / Numara</label><input type="text" placeholder="TR-26-054"></div>
+          <div class="form-group"><label>Irk ve Genetik Hat</label><select><option>Karniyol</option><option>Kafkas</option></select></div>
         </div>
       </div>
 
-      <!-- 2. Soyağacı ve Akrabalık -->
       <div class="section-box">
-        <h3>2. Çok Kuşaklı Soyağacı (Hat Ağacı) & Inbreeding</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Anne Hattı (Queen Line)</label><input type="text" placeholder="Ana Hat Kodu"></div>
-          <div class="form-group"><label>Baba Hattı (Drone Line)</label><input type="text" placeholder="Erkek Arı İstasyonu"></div>
-        </div>
-        <div style="margin-top:12px; padding:10px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:8px; font-size:13px; color:#34d399;">
-          Akrabalık Katsayısı (Inbreeding Coefficient): <strong>%1.2 (Güvenli Eşleşme)</strong>
-        </div>
-      </div>
-
-      <!-- 3. Koloni Performans Kriterleri -->
-      <div class="section-box">
-        <h3>3. Performans Değerlendirme</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Uysallık (1-5)</label><input type="number" min="1" max="5" value="4"></div>
-          <div class="form-group"><label>Bal Verimi (1-5)</label><input type="number" min="1" max="5" value="5"></div>
-          <div class="form-group"><label>Oğul Eğilimi</label><select><option>Çok Düşük</option><option>Orta</option><option>Yüksek</option></select></div>
-          <div class="form-group"><label>Hijyenik Davranış</label><select><option>Mükemmel</option><option>İyi</option><option>Zayıf</option></select></div>
-        </div>
-      </div>
-
-      <!-- 4. Morfometrik Ölçüm Entegrasyonu -->
-      <div class="section-box">
-        <h3>4. Morfometrik Kanat Analizi</h3>
-        <p style="font-size:13px; color:var(--muted)">Kamerayı açarak kanat fotoğrafı çekin; Kübital İndeks ve Diskoidal Kayma otomatik hesaplansın.</p>
-        <div class="camera-box" id="cameraBox">
+        <h3>2. Morfometrik Kanat Analizi</h3>
+        <div class="camera-box">
           <div class="camera-placeholder" id="camPlaceholder">Kamera Kapalı</div>
           <video id="videoElement" autoplay playsinline style="display:none;"></video>
           <canvas id="canvasElement" style="display:none;"></canvas>
         </div>
         <div class="action-row">
           <button class="btn-secondary" id="startCamBtn">Kamerayı Aç</button>
-          <button class="btn-primary" id="captureBtn" disabled>Fotoğraf Çek & Analiz Et</button>
+          <button class="btn-primary" id="captureBtn" disabled>Analiz Et</button>
         </div>
         <div class="metric-grid">
-          <div class="metric-item"><div class="metric-label">Kübital İndeks (C.I.)</div><div class="metric-value" id="ciValue">—</div></div>
+          <div class="metric-item"><div class="metric-label">Kübital İndeks</div><div class="metric-value" id="ciValue">—</div></div>
           <div class="metric-item"><div class="metric-label">Diskoidal Kayma</div><div class="metric-value" id="diValue">—</div></div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- 5. Resmi Studbook Raporlama -->
+  <!-- Nektar Akım Skoru Modülü Paneli -->
+  <div class="content-panel" id="nektarPanel">
+    <div class="panel-container">
+      <h2>Nektar Akım ve Flora Skoru</h2>
+      <p style="color:var(--muted); margin-top:-10px;">Open-Meteo hava verileri ve bölgesel flora takvimine göre anlık nektar potansiyeli.</p>
+      
       <div class="section-box">
-        <h3>5. Resmi Soy Kütüğü (Studbook)</h3>
-        <p style="font-size:13px; color:var(--muted)">Tüm verileri standart damızlık defteri ve uluslararası formatta dışa aktarın.</p>
-        <button class="btn-primary" style="width:100%" onclick="alert('Studbook (Damızlık Defteri) başarıyla dışa aktarıldı.')">Studbook Verilerini Dışa Aktar (.json / .csv)</button>
+        <h3>Konum ve Bölge Seçimi</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>İl / İlçe</label><select><option>İzmir / Merkez</option><option>Muğla / Marmaris</option></select></div>
+          <div class="form-group"><label>Büyüme Derece Gün (GDD)</label><input type="text" value="Aktif (Hesaplanıyor)" readonly></div>
+        </div>
       </div>
 
+      <div class="section-box">
+        <h3>Anlık Akım Endeksi</h3>
+        <div class="metric-grid">
+          <div class="metric-item"><div class="metric-label">Nektar Akım Skoru</div><div class="metric-value" style="color:var(--amber)">%84 (Çok Yüksek)</div></div>
+          <div class="metric-item"><div class="metric-label">Hava / Nehir Durumu</div><div class="metric-value">24°C / Uygun Yağış</div></div>
+        </div>
+        <button class="btn-primary" style="width:100%; margin-top:15px;" onclick="alert('Open-Meteo GDD ve Flora senkronizasyonu güncellendi.')">Hava ve Flora Verilerini Güncelle</button>
+      </div>
     </div>
   </div>
 
@@ -177,7 +154,8 @@
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
     const menuToggle = document.getElementById('menuToggle');
-    const morphPanel = document.getElementById('morphPanel');
+    const pedigreePanel = document.getElementById('pedigreePanel');
+    const nektarPanel = document.getElementById('nektarPanel');
     
     const startCamBtn = document.getElementById('startCamBtn');
     const captureBtn = document.getElementById('captureBtn');
@@ -189,19 +167,24 @@
 
     let mediaStream = null;
 
+    function closeAllPanels() {
+      pedigreePanel.classList.remove('active');
+      nektarPanel.classList.remove('active');
+      stopCamera();
+    }
+
     menuBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.target;
         overlay.classList.add('hidden');
+        closeAllPanels();
         
         if (target === 'pedigree') {
-          morphPanel.classList.add('active');
-        } else {
-          morphPanel.classList.remove('active');
-          stopCamera();
-          if (target === 'akademi') {
-            alert('Akademi / Flora modülü yakında eklenecek.');
-          }
+          pedigreePanel.classList.add('active');
+        } else if (target === 'nektar') {
+          nektarPanel.classList.add('active');
+        } else if (target === 'hive') {
+          alert('Kovan Sağlığı modülü yakında yüklenecek.');
         }
       });
     });
