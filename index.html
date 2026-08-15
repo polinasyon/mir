@@ -9,11 +9,7 @@
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
 
-    /* Top header */
-    header.topbar{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));box-shadow:0 6px 18px rgba(2,6,23,0.04);z-index:1100}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .brand .logo{width:36px;height:36px;display:inline-block}
-    .brand .title{font-size:16px}
+    /* Sağ Üst Menü Açma Butonu */
     .menu-toggle{position:fixed;top:12px;right:12px;z-index:2200;width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 30px rgba(2,6,23,0.25)}
     .menu-toggle svg{width:20px;height:20px;stroke:var(--amber);fill:none}
 
@@ -21,18 +17,18 @@
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px); transition: opacity .24s ease, visibility .24s;}
     .honey-bg{position:absolute;inset:0;opacity:0.06;pointer-events:none;background-image:radial-gradient(circle at 25% 25%, rgba(245,158,11,0.06) 0 2px, transparent 3px), radial-gradient(circle at 75% 75%, rgba(249,115,22,0.04) 0 2px, transparent 3px);mix-blend-mode:screen}
     
-    .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
-    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6);transition:transform .36s cubic-bezier(.2,.9,.3,1),opacity .28s}
+    .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:14px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
+    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6)}
     .menu-btn .label{display:flex;align-items:center;gap:14px}
     .menu-btn svg{width:28px;height:28px}
     .menu-btn .accent{background:linear-gradient(90deg,var(--amber),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .menu-btn.pressed{transform:translateY(36px);opacity:0}
+    .menu-btn.disabled-brand{opacity:0.6;cursor:default}
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
     /* Pedigree / Islah Paneli */
-    .morph-panel{display:none;position:fixed;inset:56px 0 0 0;background:#0b1016;z-index:1500;padding:24px;color:#fff;overflow-y:auto}
+    .morph-panel{display:none;position:fixed;inset:0 0 0 0;background:#0b1016;z-index:1500;padding:24px;color:#fff;overflow-y:auto}
     .morph-panel.active{display:block}
-    .morph-container{max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
+    .morph-container{max-width:800px;margin:20px auto;display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
     
     .section-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:20px;border-radius:14px}
     .section-box h3{margin-top:0;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
@@ -54,44 +50,44 @@
     .metric-item{background:rgba(0,0,0,0.2);padding:10px;border-radius:8px}
     .metric-label{font-size:12px;color:var(--muted)}
     .metric-value{font-size:16px;font-weight:bold;color:#fff}
-
-    .container{max-width:980px;margin:0 auto;padding:84px 20px 40px}
-    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px;min-height:180px}
   </style>
 </head>
 <body>
-  <!-- Üst Bar ve Logo -->
-  <header class="topbar">
-    <div class="brand">
-      <svg class="logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/>
-      </svg>
-      <div class="title">Polinasyon</div>
-    </div>
-  </header>
 
   <!-- Sağ Üst Menü Açma Butonu -->
   <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
 
-  <!-- Overlay Menü (Tüm butonlar burada sabit kalır) -->
+  <!-- Overlay Menü -->
   <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
     <div class="honey-bg"></div>
     <div class="menu" id="menu">
-      <button class="menu-btn" data-target="top">
-        <span class="label"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z" fill="currentColor"/></svg><span class="accent">Ana Sayfa</span></span>
-        <span>Home</span>
-      </button>
+      <!-- 1. Etkisiz Polinasyon Marka Butonu -->
+      <div class="menu-btn disabled-brand">
+        <span class="label">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px"><path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/></svg>
+          <span class="accent">Polinasyon</span>
+        </span>
+        <span style="font-size:12px; color:var(--muted)">v2.6</span>
+      </div>
 
+      <!-- 2. Kovan Sağlığı Butonu -->
       <button class="menu-btn" data-target="hive">
         <span class="label"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.4 3.5 6.5 6C5.5 8.5 6 11 7.8 12.8C6.9 13.7 6.4 14.9 6.6 16.1C6.9 17.6 8.1 18.7 9.6 19C11 19.3 12.4 19 13.6 18.2C14.8 17.4 15.6 16 15.8 14.4C16.9 13.8 17.6 12.8 17.8 11.7C18.3 9.6 16.9 7.5 14.8 6.9C13.4 6.5 11.7 6 11 4.5C10.6 3.7 11 2 12 2Z" fill="#10b981"/></svg><span class="accent">Kovan Sağlığı</span></span>
         <span>—</span>
       </button>
 
+      <!-- 3. Pedigree & Islah Butonu -->
       <button class="menu-btn" data-target="pedigree">
         <span class="label"><svg viewBox="0 0 24 24" fill="#f97316" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8H21L16.5 12L18.5 18L12 14L5.5 18L7.5 12L3 8H9L12 2Z"/></svg><span class="accent">Pedigree & Islah</span></span>
         <span>Modül</span>
+      </button>
+
+      <!-- 4. Akademi / Boş Buton -->
+      <button class="menu-btn" data-target="akademi">
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg><span class="accent">Akademi / Flora</span></span>
+        <span>Yakında</span>
       </button>
     </div>
   </div>
@@ -177,17 +173,9 @@
     </div>
   </div>
 
-  <!-- Ana İçerik -->
-  <main class="container" id="top">
-    <section id="hive" class="card">
-      <h2>Kovan Sağlığı Paneli</h2>
-      <p>Kovan verileri bu alanda yer alır.</p>
-    </section>
-  </main>
-
   <script>
     const overlay = document.getElementById('overlay');
-    const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
+    const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
     const menuToggle = document.getElementById('menuToggle');
     const morphPanel = document.getElementById('morphPanel');
     
@@ -202,10 +190,8 @@
     let mediaStream = null;
 
     menuBtns.forEach((btn) => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const target = btn.dataset.target;
-        
-        // Sadece menüyü kapatıyoruz, butonlar DOM içinde sabit kalıyor
         overlay.classList.add('hidden');
         
         if (target === 'pedigree') {
@@ -213,10 +199,8 @@
         } else {
           morphPanel.classList.remove('active');
           stopCamera();
-          if (target === 'top') window.scrollTo({top: 0, behavior: 'smooth'});
-          else {
-            const el = document.getElementById(target);
-            if (el) el.scrollIntoView({behavior:'smooth'});
+          if (target === 'akademi') {
+            alert('Akademi / Flora modülü yakında eklenecek.');
           }
         }
       });
