@@ -22,8 +22,9 @@
     .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
     .card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
 
-    /* map */
+    /* map (hidden by request) */
     #map{height:360px;border-radius:8px}
+    #mapCard{display:none}
 
     /* overlay menu (keeps previous overlay) */
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
@@ -32,6 +33,11 @@
     .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:#fff;font-weight:800;margin-bottom:6px}
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
     .menu-btn span.right{color:var(--amber);font-weight:700}
+
+    /* small backup controls */
+    .backup-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .backup-controls select,input[type=file]{border-radius:8px;padding:8px}
+    .backup-controls button{padding:8px 12px;border-radius:8px;background:linear-gradient(90deg,var(--amber),#f97316);border:none;color:#0b1220;font-weight:700;cursor:pointer}
 
     /* safety: ensure toggle works even if JS module errored */
     #menuToggle[aria-label]{outline:none}
@@ -87,8 +93,8 @@
         </section>
 
         <section id="mapCard" class="card" style="margin-top:16px">
-          <h2>Bölge Haritası</h2>
-          <div id="map"></div>
+          <h2>Bölge Haritası (gizlendi)</h2>
+          <div id="map" aria-hidden="true"></div>
         </section>
       </div>
 
@@ -108,6 +114,18 @@
           <h3>Flora Veritabanı</h3>
           <input type="file" id="floraCsv" accept=".csv" />
           <div id="floraCount" style="margin-top:8px">Kayıt: 0</div>
+
+          <div class="backup-controls">
+            <label for="backupFormat">Format:</label>
+            <select id="backupFormat">
+              <option value="json">JSON (sade)</option>
+              <option value="extended">Extended JSON (metadata + sha256)</option>
+            </select>
+            <button id="btnBackup">Yedekle</button>
+            <input type="file" id="backupFile" accept=".json" />
+            <button id="btnRestore">Geri Yükle</button>
+          </div>
+          <small style="display:block;margin-top:8px;color:var(--muted)">Yedekler tarayıcıdan indirilebilir ve daha sonra geri yüklenebilir. Güvenlik için extended format SHA256 içerir.</small>
         </section>
       </aside>
     </div>

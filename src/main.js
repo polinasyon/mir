@@ -3,6 +3,7 @@ import { initMeteo } from './meteo.js';
 import { initNectar } from './nectar.js';
 import { initFlora } from './flora-db.js';
 import { initMap } from './map.js';
+import { initRegionDB } from './region-db.js';
 
 async function boot(){
   initCore(document.getElementById('coreStatus'));
@@ -19,6 +20,23 @@ async function boot(){
       // notify other modules
       map.panTo([loc.lat, loc.lon]);
     }
+  });
+
+  // region DB (backup/restore)
+  const regionDb = initRegionDB(flora);
+  const btnBackup = document.getElementById('btnBackup');
+  const backupFormat = document.getElementById('backupFormat');
+  const backupFile = document.getElementById('backupFile');
+  const btnRestore = document.getElementById('btnRestore');
+
+  btnBackup.addEventListener('click', ()=>{
+    const fmt = (backupFormat && backupFormat.value) || 'json';
+    regionDb.exportBackup(fmt);
+  });
+  btnRestore.addEventListener('click', async ()=>{
+    const f = backupFile.files && backupFile.files[0];
+    if (!f) return alert('Lütfen yedek dosyası seçin');
+    await regionDb.importBackupFile(f);
   });
 
   // menu overlay behaviour (kept here)
@@ -52,7 +70,7 @@ async function boot(){
     }
   });
 
-  // register service worker
+  // register service worker (leave as-is; user said keep it)
   if ('serviceWorker' in navigator) {
     try{
       await navigator.serviceWorker.register('/sw.js');

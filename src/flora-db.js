@@ -5,6 +5,7 @@ let callbacks = [];
 
 function parseCSV(text){
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if (lines.length===0) return [];
   const header = lines.shift().split(',').map(h=>h.trim());
   return lines.map(line=>{
     const cols = line.split(',').map(c=>c.trim());
@@ -42,6 +43,8 @@ export function initFlora({ onChange } = {}){
 
   return {
     list: ()=> items.slice(),
-    add: (it)=>{ items.push(it); save(); callbacks.forEach(cb=> cb && cb(items.slice())); }
+    add: (it)=>{ items.push(it); save(); callbacks.forEach(cb=> cb && cb(items.slice())); },
+    replaceAll: (arr)=>{ items = arr.map((p,i)=> ({ id: p.id||(Date.now()+'-'+i), species:p.species||'', lat: parseFloat(p.lat||0), lon: parseFloat(p.lon||0), region:p.region||'', notes:p.notes||'' })); save(); callbacks.forEach(cb=> cb && cb(items.slice())); },
+    clear: ()=>{ items=[]; save(); callbacks.forEach(cb=> cb && cb(items.slice())); }
   };
 }
