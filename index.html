@@ -18,15 +18,16 @@
     .menu-toggle{position:fixed;top:12px;right:12px;z-index:2200;width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 30px rgba(2,6,23,0.25)}
     .menu-toggle svg{width:20px;height:20px;fill:var(--amber)}
 
-    .container{max-width:1100px;margin:0 auto;padding:84px 20px 60px}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    /* layout */
+    .container{max-width:1200px;margin:0 auto;padding:84px 18px 110px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
     .card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
 
     /* map (hidden by request) */
     #map{height:360px;border-radius:8px}
     #mapCard{display:none}
 
-    /* overlay menu (keeps previous overlay) */
+    /* overlay menu */
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
     .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:16px;align-items:center;width:100%;max-width:520px;padding:28px;border-radius:16px}
@@ -34,15 +35,22 @@
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
     .menu-btn span.right{color:var(--amber);font-weight:700}
 
-    /* small backup controls */
-    .backup-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
-    .backup-controls select,input[type=file]{border-radius:8px;padding:8px}
-    .backup-controls button{padding:8px 12px;border-radius:8px;background:linear-gradient(90deg,var(--amber),#f97316);border:none;color:#0b1220;font-weight:700;cursor:pointer}
+    /* bottom bar */
+    .bottom-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:2150;pointer-events:auto}
+    .bottom-panel{display:flex;gap:10px;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));padding:8px 12px;border-radius:999px;box-shadow:0 12px 40px rgba(2,6,23,0.06)}
+    .bottom-panel select{border-radius:8px;padding:8px;border:1px solid rgba(2,6,23,0.06);background:#fff}
+    .bottom-btn{padding:8px 14px;border-radius:999px;background:linear-gradient(90deg,var(--amber),#f97316);border:none;color:#07101a;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+    .bottom-btn.secondary{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#111}
+    .file-label{padding:8px 12px;border-radius:999px;border:1px dashed rgba(2,6,23,0.06);background:#fff;cursor:pointer}
+    .file-name{margin-left:8px;color:var(--muted);font-size:13px}
+    .bottom-panel input[type=file]{display:none}
 
-    /* safety: ensure toggle works even if JS module errored */
-    #menuToggle[aria-label]{outline:none}
+    /* form controls inside cards */
+    .card button{padding:8px 10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);background:transparent;cursor:pointer}
+    .card input[type=text]{padding:8px;border-radius:8px;border:1px solid rgba(2,6,23,0.06);width:100%}
 
-    @media(max-width:920px){.grid{grid-template-columns:1fr;}.container{padding:84px 12px 60px}}
+    @media(max-width:920px){.grid{grid-template-columns:1fr;}.container{padding:84px 12px 140px}}
+    @media(max-width:520px){.bottom-panel{gap:8px;padding:6px}.bottom-btn{padding:8px 10px}.brand .title{font-size:15px}}
   </style>
 </head>
 <body>
@@ -54,7 +62,7 @@
     <div aria-hidden="true" style="width:44px"></div>
   </header>
 
-  <!-- Add a simple inline toggle so menu opens even if module JS fails -->
+  <!-- inline toggle fallback -->
   <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster" onclick="(function(o){ o.classList.toggle('hidden'); })(document.getElementById('overlay'))">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
@@ -104,7 +112,7 @@
           <div id="locationInfo">Varsayılan: Ankara</div>
           <div style="margin-top:8px;display:flex;gap:8px">
             <button id="useGeo">Güncel Konumu Kullan</button>
-            <input id="locInput" placeholder="Şehir veya 'lat,lon'" style="flex:1" />
+            <input id="locInput" placeholder="Şehir veya 'lat,lon'" />
             <button id="setLoc">Konumu Değiştir</button>
           </div>
           <div id="meteoSummary" style="margin-top:12px;color:var(--muted)"></div>
@@ -114,23 +122,42 @@
           <h3>Flora Veritabanı</h3>
           <input type="file" id="floraCsv" accept=".csv" />
           <div id="floraCount" style="margin-top:8px">Kayıt: 0</div>
-
-          <div class="backup-controls">
-            <label for="backupFormat">Format:</label>
-            <select id="backupFormat">
-              <option value="json">JSON (sade)</option>
-              <option value="extended">Extended JSON (metadata + sha256)</option>
-            </select>
-            <button id="btnBackup">Yedekle</button>
-            <input type="file" id="backupFile" accept=".json" />
-            <button id="btnRestore">Geri Yükle</button>
-          </div>
-          <small style="display:block;margin-top:8px;color:var(--muted)">Yedekler tarayıcıdan indirilebilir ve daha sonra geri yüklenebilir. Güvenlik için extended format SHA256 içerir.</small>
+          <small style="display:block;margin-top:8px;color:var(--muted)">Flora CSV yükleyerek veritabanına kayıt ekleyebilirsin.</small>
         </section>
       </aside>
     </div>
   </main>
 
+  <!-- bottom bar with backup controls (visible, aligned with other buttons) -->
+  <div class="bottom-bar">
+    <div class="bottom-panel">
+      <label class="file-label" for="backupFile">Dosya Seç</label>
+      <input type="file" id="backupFile" accept=".json" />
+      <span id="backupFilename" class="file-name">seçili dosya yok</span>
+
+      <label for="backupFormat">Format</label>
+      <select id="backupFormat">
+        <option value="json">JSON (sade)</option>
+        <option value="extended">Extended JSON (sha256)</option>
+      </select>
+
+      <button id="btnBackup" class="bottom-btn">Yedekle</button>
+      <button id="btnRestore" class="bottom-btn secondary">Geri Yükle</button>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
+  <script>
+    // small UI glue: show selected filename
+    const backupFile = document.getElementById('backupFile');
+    const backupFilename = document.getElementById('backupFilename');
+    backupFile.addEventListener('change', ()=>{
+      const f = backupFile.files && backupFile.files[0];
+      backupFilename.textContent = f ? f.name : 'seçili dosya yok';
+    });
+
+    // make file-label click open file chooser
+    document.querySelectorAll('.file-label').forEach(l=> l.addEventListener('click', ()=> document.getElementById('backupFile').click()));
+  </script>
 </body>
 </html>
