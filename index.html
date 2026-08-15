@@ -10,9 +10,8 @@
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
 
     /* Fullscreen dark overlay with honeycomb SVG pattern */
-    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px);}
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
     .honey-bg{position:absolute;inset:0;opacity:0.06;pointer-events:none;background-image:radial-gradient(circle at 25% 25%, rgba(245,158,11,0.06) 0 2px, transparent 3px), radial-gradient(circle at 75% 75%, rgba(249,115,22,0.04) 0 2px, transparent 3px);mix-blend-mode:screen}
-    /* subtle honeycomb vector overlay (SVG pattern) */
     .honey-pattern{position:absolute;inset:0;opacity:0.08;pointer-events:none}
 
     .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
@@ -20,14 +19,8 @@
     .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6);transition:transform .36s cubic-bezier(.2,.9,.3,1),opacity .28s}
     .menu-btn .label{display:flex;align-items:center;gap:14px}
     .menu-btn svg{width:28px;height:28px}
-
-    /* honey/amber accents */
     .menu-btn .accent{background:linear-gradient(90deg,var(--amber),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent}
-
-    /* pressed state animates downward + fade */
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
-
-    /* when overlay not visible we hide it */
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
 
     /* content underneath */
@@ -35,7 +28,13 @@
     header h1{margin:0 0 8px 0}
     .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px}
 
-    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}}
+    /* Footer bar with matching buttons */
+    .footer-bar{position:fixed;left:0;right:0;bottom:18px;display:flex;justify-content:center;z-index:2100;pointer-events:auto}
+    .footer-panel{display:flex;gap:12px;padding:10px 14px;border-radius:14px;background:linear-gradient(180deg, rgba(8,10,13,0.9), rgba(10,12,15,0.94));box-shadow:0 12px 30px rgba(2,6,23,0.45);align-items:center}
+    .footer-btn{padding:10px 14px;border-radius:10px;background:transparent;color:var(--amber);border:1px solid rgba(255,255,255,0.06);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px}
+    .footer-btn svg{width:18px;height:18px}
+
+    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}.footer-panel{padding:8px}}
   </style>
 </head>
 <body>
@@ -82,7 +81,7 @@
   <main class="container">
     <header>
       <h1>Polinasyon Kontrol Paneli</h1>
-      <p style="color:var(--muted)">Koyu overlay menü ve amber/honeycomb teması etkin. Menüyü kapatmak için bir butona tıkla; tekrar açmak için sol üst köşeye dokun.</p>
+      <p style="color:var(--muted)">Koyu overlay menü ve amber/honeycomb teması etkin. Menüyü kapatmak için bir butona tıkla; tekrar açmak için sol üst köşeye dokun veya alt panelden "Menüyü Göster"e bas.</p>
     </header>
 
     <section id="hive" class="card">
@@ -106,27 +105,39 @@
     </section>
 
     <footer>
-      <small style="color:var(--muted)">İstediğin değişiklikleri söyle; menü animasyonunu/renkleri daha da inceliyorum.</small>
+      <small style="color:var(--muted)">İstediğin değişiklikleri söyle, menü animasyonunu/renkleri daha da inceliyorum.</small>
     </footer>
   </main>
+
+  <!-- Footer bar with actions: refresh + show menu -->
+  <div class="footer-bar">
+    <div class="footer-panel">
+      <button class="footer-btn" id="btnRefresh" title="Sayfayı Yenile">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12a9 9 0 1 1-2.93-6.36L21 5v7h-7l1.76-1.76A7 7 0 1 0 19.07 18.07L21 20.95A9 9 0 0 1 21 12z" fill="currentColor"/></svg>
+        Sayfayı Yenile
+      </button>
+
+      <button class="footer-btn" id="btnShowMenu" title="Menüyü Göster">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Menüyü Göster
+      </button>
+    </div>
+  </div>
 
   <script>
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnShowMenu = document.getElementById('btnShowMenu');
 
-    // add click animation: press -> buttons slide down sequentially, overlay hides, then open target
+    // menu buttons animation and navigation
     menuBtns.forEach((btn, idx) => {
       btn.addEventListener('click', async () => {
         const target = btn.dataset.target;
-        // animate all buttons downward with stagger
         menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*50));
-        // wait for animation to finish
         await new Promise(r=> setTimeout(r, 420));
-        // hide overlay
         overlay.classList.add('hidden');
-        // clean pressed state shortly after
         setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 60);
-        // navigate to target section
         if (target) {
           const el = document.getElementById(target);
           if (el) el.scrollIntoView({behavior:'smooth'});
@@ -134,17 +145,25 @@
       });
     });
 
-    // reopen overlay by tapping top-left area
+    // footer: refresh
+    btnRefresh.addEventListener('click', ()=> location.reload());
+
+    // footer: show menu (reopen overlay)
+    btnShowMenu.addEventListener('click', ()=>{
+      overlay.classList.remove('hidden');
+      // force reflow so buttons start from neutral state
+      void overlay.offsetWidth;
+      menuBtns.forEach(b=> b.classList.remove('pressed'));
+    });
+
+    // reopen overlay by tapping top-left area (keep for convenience)
     document.addEventListener('click', (e) => {
       if (e.clientX < 88 && e.clientY < 88) {
-        // remove hidden then force reflow so animations start clean
         overlay.classList.remove('hidden');
         void overlay.offsetWidth;
         menuBtns.forEach(b=> b.classList.remove('pressed'));
       }
     });
-
-    // initial demo: overlay shown by default
   </script>
 </body>
 </html>
