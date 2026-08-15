@@ -20,6 +20,8 @@
       z-index:1200;
       transition:transform .25s ease,opacity .25s ease;
     }
+    .sidebar.collapsed{ transform:translateX(-120%); opacity:0; pointer-events:none }
+
     .side-btn{
       display:flex;
       align-items:center;
@@ -47,6 +49,12 @@
     .side-btn[data-color="green"]{ border-left:2px solid #10b981 }
     .side-btn[data-color="red"]{ border-left:2px solid #ef4444 }
     .side-btn[data-color="purple"]{ border-left:2px solid #7c3aed }
+
+    /* badge */
+    .badge{margin-left:8px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+    .badge.green{background:#10b981}
+    .badge.yellow{background:#f59e0b}
+    .badge.red{background:#ef4444}
 
     /* subtle hover */
     .side-btn:hover{ box-shadow:0 10px 30px rgba(2,6,23,0.12) }
@@ -90,7 +98,7 @@
     </a>
 
     <a class="side-btn" data-color="green" href="#current" title="Kovan Sağlığı">
-      <span class="label"><span class="dot" style="background:#10b981"></span>Kovan Sağlığı</span>
+      <span class="label"><span class="dot" style="background:#10b981"></span>Kovan Sağlığı<span class="badge" id="hiveScore">—</span></span>
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M12 2C9.5 2 7.4 3.5 6.5 6C5.5 8.5 6 11 7.8 12.8C6.9 13.7 6.4 14.9 6.6 16.1C6.9 17.6 8.1 18.7 9.6 19C11 19.3 12.4 19 13.6 18.2C14.8 17.4 15.6 16 15.8 14.4C16.9 13.8 17.6 12.8 17.8 11.7C18.3 9.6 16.9 7.5 14.8 6.9C13.4 6.5 11.7 6 11 4.5C10.6 3.7 11 2 12 2Z" fill="#111"/>
       </svg>
@@ -166,6 +174,9 @@
     const dailySection = document.getElementById('daily');
     const dailyList = document.getElementById('dailyList');
 
+    const hiveScoreEl = document.getElementById('hiveScore');
+    const sidebar = document.querySelector('.sidebar');
+
     const CACHE_KEY = 'polinasyon_weather_cache';
     const CACHE_TTL = 1000 * 60 * 60; // 1 saat
 
@@ -173,6 +184,7 @@
       const val = locInput.value.trim();
       if (!val) return alert('Lütfen şehir veya koordinat girin.');
       fetchForInput(val);
+      collapseSidebar(true); // hide when menu used
     });
     btnUseGeo.addEventListener('click', ()=> {
       if (!navigator.geolocation) return alert('Geolocation desteklenmiyor.');
@@ -184,9 +196,27 @@
       },err=>{
         status('Konum alınamadı: ' + err.message);
       });
+      collapseSidebar(true);
     });
 
     function status(txt){ statusEl.textContent = txt; }
+
+    function collapseSidebar(v){
+      if(!sidebar) return;
+      sidebar.classList.toggle('collapsed', !!v);
+    }
+
+    // hide sidebar when input focused (simulates "menu açılınca")
+    locInput.addEventListener('focus', ()=> collapseSidebar(true));
+    locInput.addEventListener('blur', ()=> setTimeout(()=> collapseSidebar(false), 200));
+
+    // click outside controls will reopen sidebar
+    document.addEventListener('click', (e)=>{
+      const inControls = e.target.closest('.controls');
+      const inSidebar = e.target.closest('.sidebar');
+      if (inControls) collapseSidebar(true);
+      else if (!inSidebar) collapseSidebar(false);
+    }, {capture:true});
 
     function parseInput(input){
       const comma = input.split(',').map(s=>s.trim());
@@ -194,6 +224,19 @@
         return { lat: parseFloat(comma[0]), lon: parseFloat(comma[1]), label: input };
       }
       return null;
+    }
+
+    function cacheGet(key){
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(key); return null; }
+        return obj.data;
+      } catch(e){ return null; }
+    }
+    function cacheSet(key, data){
+      try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch(e){}
     }
 
     async function fetchForInput(input) {
@@ -215,19 +258,6 @@
           status('Geocoding hatası: ' + e.message);
         }
       }
-    }
-
-    function cacheGet(key){
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        const obj = JSON.parse(raw);
-        if (Date.now() - obj.ts > CACHE_TTL) { localStorage.removeItem(key); return null; }
-        return obj.data;
-      } catch(e){ return null; }
-    }
-    function cacheSet(key, data){
-      try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch(e){}
     }
 
     async function fetchWeather(lat, lon, label = '') {
@@ -260,7 +290,30 @@
       }
     }
 
+    function computeHiveScore(data){
+      // Simple heuristic: ideal temp ~20°C, low wind, low precip => high score
+      if (!data || !data.current_weather) return null;
+      const temp = data.current_weather.temperature;
+      const wind = data.current_weather.windspeed || 0;
+      // precipitation approx from daily sum of first day if available
+      const precip = (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum[0]) ? data.daily.precipitation_sum[0] : 0;
+      let score = 100;
+      score -= Math.abs(temp - 20) * 2; // penalty per degree
+      if (wind > 8) score -= 20; else if (wind > 5) score -= 8;
+      score -= Math.min(precip * 2, 30);
+      score = Math.round(Math.max(0, Math.min(100, score)));
+      return score;
+    }
+    function updateHiveScoreFromData(data){
+      const score = computeHiveScore(data);
+      if (score === null){ hiveScoreEl.textContent = '—'; hiveScoreEl.className='badge'; return; }
+      hiveScoreEl.textContent = score + '%';
+      hiveScoreEl.className = 'badge ' + (score >= 75 ? 'green' : (score >= 50 ? 'yellow' : 'red'));
+    }
+
     function renderWeather(data, label){
+      updateHiveScoreFromData(data);
+
       if (data.current_weather) {
         curSection.classList.remove('hidden');
         curTemp.textContent = data.current_weather.temperature;
