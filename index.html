@@ -9,37 +9,50 @@
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
 
+    /* Top header */
+    header.topbar{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));box-shadow:0 6px 18px rgba(2,6,23,0.04);z-index:1100}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .logo{width:36px;height:36px;display:inline-block}
+    .brand .title{font-size:16px}
+
+    /* small fixed menu toggle at top-right */
+    .menu-toggle{position:fixed;top:12px;right:12px;z-index:2200;width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 30px rgba(2,6,23,0.25)}
+    .menu-toggle svg{width:20px;height:20px;fill:var(--amber)}
+
     /* Fullscreen dark overlay with honeycomb SVG pattern */
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
+    .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
     .honey-bg{position:absolute;inset:0;opacity:0.06;pointer-events:none;background-image:radial-gradient(circle at 25% 25%, rgba(245,158,11,0.06) 0 2px, transparent 3px), radial-gradient(circle at 75% 75%, rgba(249,115,22,0.04) 0 2px, transparent 3px);mix-blend-mode:screen}
     .honey-pattern{position:absolute;inset:0;opacity:0.08;pointer-events:none}
 
     .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
-
     .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6);transition:transform .36s cubic-bezier(.2,.9,.3,1),opacity .28s}
-    .menu-btn.small{padding:10px 14px;border-radius:10px;min-width:140px}
     .menu-btn .label{display:flex;align-items:center;gap:14px}
     .menu-btn svg{width:28px;height:28px}
     .menu-btn .accent{background:linear-gradient(90deg,var(--amber),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent}
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
-    .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
 
     /* content underneath */
-    .container{max-width:980px;margin:0 auto;padding:40px}
-    header h1{margin:0 0 8px 0}
+    .container{max-width:980px;margin:0 auto;padding:84px 40px 40px}
     .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px}
 
-    /* Footer bar with matching small menu button */
-    .footer-bar{position:fixed;left:0;right:0;bottom:18px;display:flex;justify-content:center;z-index:2100;pointer-events:auto}
-    .footer-panel{display:flex;gap:12px;padding:6px 10px;border-radius:14px;background:linear-gradient(180deg, rgba(8,10,13,0.9), rgba(10,12,15,0.94));box-shadow:0 12px 30px rgba(2,6,23,0.45);align-items:center}
-    .footer-btn{appearance:none;border:none;background:transparent;color:var(--amber);font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px}
-    .footer-btn.menu-small{padding:8px 10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);color:#fff}
-    .footer-btn svg{width:18px;height:18px}
-
-    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}.footer-panel{padding:6px}}
+    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}.menu-toggle{width:40px;height:40px;top:8px;right:8px}}
   </style>
 </head>
 <body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z" fill="#f59e0b"/></svg>
+      <div class="title">Polinasyon</div>
+    </div>
+    <div aria-hidden="true" style="width:44px"></div>
+  </header>
+
+  <!-- small fixed menu toggle -->
+  <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+
   <!-- Overlay with animated honeycomb/amber menu -->
   <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
     <svg class="honey-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
@@ -81,11 +94,6 @@
   </div>
 
   <main class="container">
-    <header>
-      <h1>Polinasyon Kontrol Paneli</h1>
-      <p style="color:var(--muted)">Koyu overlay menü ve amber/honeycomb teması etkin. Menüyü kapatmak için bir butona tıkla; tekrar açmak için sol üst köşeye dokun veya alt panelden "Menüyü Göster"e bas.</p>
-    </header>
-
     <section id="hive" class="card">
       <h2>Kovan Sağlığı</h2>
       <p>Placeholder: Kovan verileri burada olacak.</p>
@@ -111,20 +119,10 @@
     </footer>
   </main>
 
-  <!-- Footer bar with only Show Menu button (short, aligned with menu style) -->
-  <div class="footer-bar">
-    <div class="footer-panel">
-      <button class="footer-btn menu-small" id="btnShowMenu" title="Menüyü Göster">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Menüyü Göster
-      </button>
-    </div>
-  </div>
-
   <script>
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
-    const btnShowMenu = document.getElementById('btnShowMenu');
+    const menuToggle = document.getElementById('menuToggle');
 
     // menu buttons animation and navigation
     menuBtns.forEach((btn, idx) => {
@@ -141,22 +139,24 @@
       });
     });
 
-    // footer: show menu (reopen overlay)
-    btnShowMenu.addEventListener('click', ()=>{
-      overlay.classList.remove('hidden');
-      // force reflow so buttons start from neutral state
-      void overlay.offsetWidth;
-      menuBtns.forEach(b=> b.classList.remove('pressed'));
-    });
-
-    // reopen overlay by tapping top-left area (keep for convenience)
-    document.addEventListener('click', (e) => {
-      if (e.clientX < 88 && e.clientY < 88) {
+    // menu toggle (top-right small fixed button)
+    menuToggle.addEventListener('click', ()=>{
+      if (overlay.classList.contains('hidden')) {
         overlay.classList.remove('hidden');
-        void overlay.offsetWidth;
+        void overlay.offsetWidth; // reflow
         menuBtns.forEach(b=> b.classList.remove('pressed'));
+      } else {
+        // close overlay quickly
+        menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*30));
+        setTimeout(()=> overlay.classList.add('hidden'), 360);
+        setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 420);
       }
     });
+
+    // initial state: overlay visible
+    // overlay.classList.remove('hidden'); // default shown already
+
+    // keep top-left reopen behaviour removed; menuToggle is primary opener
   </script>
 </body>
 </html>
