@@ -159,8 +159,10 @@
         });
         // wait for animation
         await new Promise(r => setTimeout(r, 400));
-        // hide overlay
+        // hide overlay and reset pressed state after hidden
         menuOverlay.classList.add('hidden');
+        // ensure pressed classes are removed so buttons don't keep animating next time
+        setTimeout(()=> menuBtns.forEach(b => b.classList.remove('pressed')), 60);
         // open target
         openTarget(target);
       });
@@ -168,11 +170,18 @@
 
     function hideMenuWithAnimation(){
       menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*30));
-      setTimeout(()=> menuOverlay.classList.add('hidden'), 350);
+      // hide overlay after animation and clear pressed class
+      setTimeout(()=>{
+        menuOverlay.classList.add('hidden');
+        menuBtns.forEach(b => b.classList.remove('pressed'));
+      }, 380);
     }
     function showMenu(){
-      menuOverlay.classList.remove('hidden');
+      // remove pressed class and force reflow so animations start from neutral state
       menuBtns.forEach(b => b.classList.remove('pressed'));
+      // force a reflow
+      void menuOverlay.offsetWidth;
+      menuOverlay.classList.remove('hidden');
     }
 
     function openTarget(target){
@@ -264,7 +273,7 @@
     locInput.value = '39.92077,32.85411';
     setTimeout(()=>{ try{ btnFetch.click(); }catch(e){} }, 700);
 
-    // allow reopening menu when tapping top-left (future logo area)
+    // keep existing top-left reopen behaviour (if user taps top-left area) — fixed showMenu to reset pressed states
     document.addEventListener('click', (e)=>{
       const atTopLeft = e.clientX < 80 && e.clientY < 80;
       if (atTopLeft) showMenu();
