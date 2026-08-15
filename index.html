@@ -75,7 +75,7 @@
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
 
-  <!-- Overlay Menü -->
+  <!-- Overlay Menü (Tüm butonlar burada sabit kalır) -->
   <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
     <div class="honey-bg"></div>
     <div class="menu" id="menu">
@@ -204,10 +204,9 @@
     menuBtns.forEach((btn) => {
       btn.addEventListener('click', async () => {
         const target = btn.dataset.target;
-        menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*50));
-        await new Promise(r=> setTimeout(r, 420));
+        
+        // Sadece menüyü kapatıyoruz, butonlar DOM içinde sabit kalıyor
         overlay.classList.add('hidden');
-        setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 60);
         
         if (target === 'pedigree') {
           morphPanel.classList.add('active');
@@ -226,12 +225,8 @@
     menuToggle.addEventListener('click', ()=>{
       if (overlay.classList.contains('hidden')) {
         overlay.classList.remove('hidden');
-        void overlay.offsetWidth;
-        menuBtns.forEach(b=> b.classList.remove('pressed'));
       } else {
-        menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*30));
-        setTimeout(()=> overlay.classList.add('hidden'), 360);
-        setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 420);
+        overlay.classList.add('hidden');
       }
     });
 
