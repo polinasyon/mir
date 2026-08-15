@@ -3,136 +3,148 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Polinasyon — Menü</title>
+  <title>Polinasyon — Menü (Overlay)</title>
   <style>
-    :root{--bg1:#f7fafc;--bg2:#ffffff;--card:#fff;--muted:#6b7280;--honey:#f59e0b;--dark:#0b1220}
+    :root{--dark-1:#070812;--dark-2:#0b1016;--amber:#f59e0b;--amber-2:#f97316;--muted:#9ca3af}
     *{box-sizing:border-box}
-    body{font-family:Inter, system-ui, Arial;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#111;margin:0;padding:20px}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
 
-    /* Fixed right dark panel with gradient background behind buttons */
-    .sidebar-wrap{
-      position:fixed;right:12px;top:64px;z-index:1300;display:flex;align-items:center;justify-content:flex-end;
-      pointer-events:auto;
-    }
-    .sidebar{
-      display:flex;flex-direction:column;gap:14px;padding:14px;border-radius:14px;background:linear-gradient(180deg, rgba(8,10,13,0.96), rgba(10,12,15,0.94));
-      box-shadow:0 12px 40px rgba(2,6,23,0.45);backdrop-filter: blur(6px);
-      min-width:180px
-    }
+    /* Fullscreen dark overlay with honeycomb SVG pattern */
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px);}
+    .honey-bg{position:absolute;inset:0;opacity:0.06;pointer-events:none;background-image:radial-gradient(circle at 25% 25%, rgba(245,158,11,0.06) 0 2px, transparent 3px), radial-gradient(circle at 75% 75%, rgba(249,115,22,0.04) 0 2px, transparent 3px);mix-blend-mode:screen}
+    /* subtle honeycomb vector overlay (SVG pattern) */
+    .honey-pattern{position:absolute;inset:0;opacity:0.08;pointer-events:none}
 
-    .side-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:transparent;color:var(--honey);font-weight:700;border:1px solid rgba(255,255,255,0.04);min-width:160px;cursor:pointer}
-    .side-btn svg{width:20px;height:20px;flex-shrink:0}
-    .side-btn .label{display:flex;align-items:center;gap:10px;color:#fff}
+    .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
 
-    /* small colored left stripes (1-2px) - subtle on dark bg */
-    .side-btn[data-color="home"]{border-left:3px solid rgba(245,158,11,0.9)}
-    .side-btn[data-color="hive"]{border-left:3px solid rgba(16,185,129,0.9)}
-    .side-btn[data-color="stats"]{border-left:3px solid rgba(124,58,237,0.9)}
-    .side-btn[data-color="settings"]{border-left:3px solid rgba(239,68,68,0.9)}
-    .side-btn[data-color="pedigree"]{border-left:3px solid rgba(249,115,22,0.9)}
+    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6);transition:transform .36s cubic-bezier(.2,.9,.3,1),opacity .28s}
+    .menu-btn .label{display:flex;align-items:center;gap:14px}
+    .menu-btn svg{width:28px;height:28px}
 
-    .side-btn:hover{transform:translateY(-3px);transition:transform .18s ease}
+    /* honey/amber accents */
+    .menu-btn .accent{background:linear-gradient(90deg,var(--amber),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent}
 
-    /* Main content shifted to avoid overlap */
-    .container{max-width:980px;margin:0 auto;padding-right:220px}
-    header{margin-bottom:18px}
-    h1{margin:0 0 8px 0}
-    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(2,6,23,0.06);margin-bottom:12px}
-    footer{margin-top:18px;color:var(--muted)}
+    /* pressed state animates downward + fade */
+    .menu-btn.pressed{transform:translateY(36px);opacity:0}
 
-    @media(max-width:700px){
-      .sidebar-wrap{right:8px;top:60px}
-      .container{padding-right:180px}
-    }
-    @media(max-width:420px){
-      .sidebar-wrap{right:6px;top:56px}
-      .container{padding-right:140px}
-      .side-btn{min-width:120px;padding:10px}
-    }
+    /* when overlay not visible we hide it */
+    .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
+
+    /* content underneath */
+    .container{max-width:980px;margin:0 auto;padding:40px}
+    header h1{margin:0 0 8px 0}
+    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px}
+
+    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}}
   </style>
 </head>
 <body>
-  <div class="sidebar-wrap" aria-hidden="false">
-    <nav class="sidebar" aria-label="Ana menü">
-      <button class="side-btn" data-color="home" data-href="#top" title="Ana Sayfa">
-        <span class="label">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z" fill="#f59e0b"/></svg>
-          Ana Sayfa
-        </span>
+  <!-- Overlay with animated honeycomb/amber menu -->
+  <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
+    <svg class="honey-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="hex" width="60" height="52" patternUnits="userSpaceOnUse" patternTransform="translate(0,0)">
+          <path d="M30 2 L58 14 L58 38 L30 50 L2 38 L2 14 Z" fill="none" stroke="rgba(245,158,11,0.08)" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hex)" />
+    </svg>
+    <div class="honey-bg"></div>
+
+    <div class="menu" id="menu">
+      <button class="menu-btn" data-target="top">
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z" fill="currentColor"/></svg><span class="accent">Ana Sayfa</span></span>
+        <span>Home</span>
       </button>
 
-      <button class="side-btn" data-color="hive" data-href="#hive" title="Kovan Sağlığı">
-        <span class="label">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2C9.5 2 7.4 3.5 6.5 6C5.5 8.5 6 11 7.8 12.8C6.9 13.7 6.4 14.9 6.6 16.1C6.9 17.6 8.1 18.7 9.6 19C11 19.3 12.4 19 13.6 18.2C14.8 17.4 15.6 16 15.8 14.4C16.9 13.8 17.6 12.8 17.8 11.7C18.3 9.6 16.9 7.5 14.8 6.9C13.4 6.5 11.7 6 11 4.5C10.6 3.7 11 2 12 2Z" fill="#10b981"/></svg>
-          Kovan Sağlığı
-        </span>
+      <button class="menu-btn" data-target="hive">
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.4 3.5 6.5 6C5.5 8.5 6 11 7.8 12.8C6.9 13.7 6.4 14.9 6.6 16.1C6.9 17.6 8.1 18.7 9.6 19C11 19.3 12.4 19 13.6 18.2C14.8 17.4 15.6 16 15.8 14.4C16.9 13.8 17.6 12.8 17.8 11.7C18.3 9.6 16.9 7.5 14.8 6.9C13.4 6.5 11.7 6 11 4.5C10.6 3.7 11 2 12 2Z" fill="#10b981"/></svg><span class="accent">Kovan Sağlığı</span></span>
+        <span id="hiveBadge">—</span>
       </button>
 
-      <button class="side-btn" data-color="stats" data-href="#stats" title="İstatistikler">
-        <span class="label">
-          <svg viewBox="0 0 24 24" fill="#7c3aed" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 19H8V10H4V19ZM10 19H14V5H10V19ZM16 19H20V13H16V19Z"/></svg>
-          İstatistikler
-        </span>
+      <button class="menu-btn" data-target="stats">
+        <span class="label"><svg viewBox="0 0 24 24" fill="#7c3aed" xmlns="http://www.w3.org/2000/svg"><path d="M4 19H8V10H4V19ZM10 19H14V5H10V19ZM16 19H20V13H16V19Z"/></svg><span class="accent">İstatistikler</span></span>
+        <span>7g</span>
       </button>
 
-      <button class="side-btn" data-color="pedigree" data-href="#pedigree" title="Pedigree">
-        <span class="label">
-          <svg viewBox="0 0 24 24" fill="#f97316" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2L15 8H21L16.5 12L18.5 18L12 14L5.5 18L7.5 12L3 8H9L12 2Z"/></svg>
-          Pedigree
-        </span>
+      <button class="menu-btn" data-target="pedigree">
+        <span class="label"><svg viewBox="0 0 24 24" fill="#f97316" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8H21L16.5 12L18.5 18L12 14L5.5 18L7.5 12L3 8H9L12 2Z"/></svg><span class="accent">Pedigree</span></span>
+        <span>Tree</span>
       </button>
 
-      <button class="side-btn" data-color="settings" data-href="#settings" title="Ayarlar">
-        <span class="label">
-          <svg viewBox="0 0 24 24" fill="#ef4444" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zM19.4 13a7.7 7.7 0 0 0 .1-1 7.7 7.7 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.7l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a8 8 0 0 0-1.7-1l-.4-2.7A.5.5 0 0 0 12.6 2h-4a.5.5 0 0 0-.5.4L7.6 5.1a8 8 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2L.8 8.8a.5.5 0 0 0 .1.7L3 11a7.7 7.7 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.7l2 3.4c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.7c.1.3.4.4.7.4h4c.3 0 .6-.1.7-.4l.4-2.7c.6-.3 1.2-.7 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.7L19.4 13z"/></svg>
-          Ayarlar
-        </span>
+      <button class="menu-btn" data-target="settings">
+        <span class="label"><svg viewBox="0 0 24 24" fill="#ef4444" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zM19.4 13a7.7 7.7 0 0 0 .1-1 7.7 7.7 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.7l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a8 8 0 0 0-1.7-1l-.4-2.7A.5.5 0 0 0 12.6 2h-4a.5.5 0 0 0-.5.4L7.6 5.1a8 8 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2L.8 8.8a.5.5 0 0 0 .1.7L3 11a7.7 7.7 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.7l2 3.4c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.7c.1.3.4.4.7.4h4c.3 0 .6-.1.7-.4l.4-2.7c.6-.3 1.2-.7 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.7L19.4 13z"/></svg><span class="accent">Ayarlar</span></span>
+        <span>⚙</span>
       </button>
-    </nav>
+    </div>
   </div>
 
-  <main class="container" id="top">
+  <main class="container">
     <header>
       <h1>Polinasyon Kontrol Paneli</h1>
-      <p style="color:var(--muted);margin-top:6px">Arayüz güncellendi: sağda karanlık gradient panel ile butonlar; honey vurguları korunuyor.</p>
+      <p style="color:var(--muted)">Koyu overlay menü ve amber/honeycomb teması etkin. Menüyü kapatmak için bir butona tıkla; tekrar açmak için sol üst köşeye dokun.</p>
     </header>
 
     <section id="hive" class="card">
       <h2>Kovan Sağlığı</h2>
-      <p>Burada kovan sağlığına dair metrikler, kayıtlar ve görselleştirmeler olacak. Şimdilik placeholder içerik.</p>
+      <p>Placeholder: Kovan verileri burada olacak.</p>
     </section>
 
     <section id="stats" class="card">
       <h2>İstatistikler</h2>
-      <p>İstatistikler ve geçmiş veriler burada görüntülenecek.</p>
+      <p>Placeholder: İstatistik panosu.</p>
     </section>
 
     <section id="pedigree" class="card">
       <h2>Pedigree</h2>
-      <p>Pedigree ile ilgili bilgiler ve arı soy ağacı / kayıtları burada gösterilecek. İstersen buraya CSV yükleme veya görselleştirme eklerim.</p>
+      <p>Placeholder: Arı soy ağacı ve kayıtları.</p>
     </section>
 
     <section id="settings" class="card">
       <h2>Ayarlar</h2>
-      <p>Panel ayarları (kullanıcı, yetkiler, eklentiler) için yer ayrıldı.</p>
+      <p>Placeholder: Panel ayarları.</p>
     </section>
 
-    <footer id="footer">
-      <small style="color:var(--muted)">İstediğin başka bir düzenleme varsa söyle, onu da ekleyeyim.</small>
+    <footer>
+      <small style="color:var(--muted)">İstediğin değişiklikleri söyle; menü animasyonunu/renkleri daha da inceliyorum.</small>
     </footer>
   </main>
 
   <script>
-    // anchor behaviour: smooth scroll
-    document.querySelectorAll('.side-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const href = btn.dataset.href;
-        if (href && href.startsWith('#')) {
-          const el = document.querySelector(href);
+    const overlay = document.getElementById('overlay');
+    const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
+
+    // add click animation: press -> buttons slide down sequentially, overlay hides, then open target
+    menuBtns.forEach((btn, idx) => {
+      btn.addEventListener('click', async () => {
+        const target = btn.dataset.target;
+        // animate all buttons downward with stagger
+        menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*50));
+        // wait for animation to finish
+        await new Promise(r=> setTimeout(r, 420));
+        // hide overlay
+        overlay.classList.add('hidden');
+        // clean pressed state shortly after
+        setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 60);
+        // navigate to target section
+        if (target) {
+          const el = document.getElementById(target);
           if (el) el.scrollIntoView({behavior:'smooth'});
         }
       });
     });
+
+    // reopen overlay by tapping top-left area
+    document.addEventListener('click', (e) => {
+      if (e.clientX < 88 && e.clientY < 88) {
+        // remove hidden then force reflow so animations start clean
+        overlay.classList.remove('hidden');
+        void overlay.offsetWidth;
+        menuBtns.forEach(b=> b.classList.remove('pressed'));
+      }
+    });
+
+    // initial demo: overlay shown by default
   </script>
 </body>
 </html>
