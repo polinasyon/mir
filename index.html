@@ -3,11 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Polinasyon — Menü (Overlay)</title>
+  <title>Polinasyon — Kontrol Paneli</title>
   <style>
     :root{--dark-1:#070812;--dark-2:#0b1016;--amber:#f59e0b;--amber-2:#f97316;--muted:#9ca3af}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
+
+    /* Top header */
+    header.topbar{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));box-shadow:0 6px 18px rgba(2,6,23,0.04);z-index:1100}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .logo{width:36px;height:36px;display:inline-block}
+    .brand .title{font-size:16px}
+    .menu-toggle{position:fixed;top:12px;right:12px;z-index:2200;width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 30px rgba(2,6,23,0.25)}
+    .menu-toggle svg{width:20px;height:20px;stroke:var(--amber);fill:none}
 
     /* Fullscreen dark overlay with honeycomb SVG pattern */
     .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px); transition: opacity .24s ease, visibility .24s;}
@@ -25,14 +33,32 @@
     .menu-btn.pressed{transform:translateY(36px);opacity:0}
     .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-    .container{max-width:980px;margin:0 auto;padding:40px}
-    header h1{margin:0 0 8px 0}
-    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px;min-height:200px}
+    .container{max-width:980px;margin:0 auto;padding:84px 20px 40px}
+    header.content-header h1{margin:0 0 8px 0}
+    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px;min-height:180px}
 
     @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}}
   </style>
 </head>
 <body>
+  <!-- Üst Bar ve Logo -->
+  <header class="topbar">
+    <div class="brand">
+      <!-- Logo için inline SVG arı ikonu -->
+      <svg class="logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/>
+      </svg>
+      <div class="title">Polinasyon</div>
+    </div>
+    <div aria-hidden="true" style="width:44px"></div>
+  </header>
+
+  <!-- Sağ Üst Menü Açma Butonu -->
+  <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Overlay Menü -->
   <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
     <svg class="honey-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -72,10 +98,11 @@
     </div>
   </div>
 
+  <!-- Ana İçerik -->
   <main class="container" id="top">
-    <header>
+    <header class="content-header">
       <h1>Polinasyon Kontrol Paneli</h1>
-      <p style="color:var(--muted)">Koyu overlay menü ve amber/honeycomb teması etkin. Menüyü kapatmak için bir butona tıkla; tekrar açmak için sol üst köşeye dokun.</p>
+      <p style="color:var(--muted)">Üstteki menü butonunu kullanarak veya sol üst köşeye dokunarak menüyü açıp kapatabilirsin.</p>
     </header>
 
     <section id="hive" class="card">
@@ -106,7 +133,9 @@
   <script>
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
+    const menuToggle = document.getElementById('menuToggle');
 
+    // Menü butonlarına tıklayınca kapanma ve ilgili bölüme kaydırma animasyonu
     menuBtns.forEach((btn) => {
       btn.addEventListener('click', async () => {
         const target = btn.dataset.target;
@@ -124,11 +153,16 @@
       });
     });
 
-    document.addEventListener('click', (e) => {
-      if (e.clientX < 88 && e.clientY < 88) {
+    // Sağ üstteki hamburger menü butonuna tıklayınca menüyü aç/kapat
+    menuToggle.addEventListener('click', ()=>{
+      if (overlay.classList.contains('hidden')) {
         overlay.classList.remove('hidden');
         void overlay.offsetWidth;
         menuBtns.forEach(b=> b.classList.remove('pressed'));
+      } else {
+        menuBtns.forEach((b,i)=> setTimeout(()=> b.classList.add('pressed'), i*30));
+        setTimeout(()=> overlay.classList.add('hidden'), 360);
+        setTimeout(()=> menuBtns.forEach(b=> b.classList.remove('pressed')), 420);
       }
     });
   </script>
