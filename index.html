@@ -17,6 +17,7 @@
     .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:18px;align-items:center;width:100%;max-width:520px;padding:32px;border-radius:16px}
 
     .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:white;font-weight:800;letter-spacing:.6px;cursor:pointer;box-shadow:0 12px 36px rgba(2,6,23,0.6);transition:transform .36s cubic-bezier(.2,.9,.3,1),opacity .28s}
+    .menu-btn.small{padding:10px 14px;border-radius:10px;min-width:140px}
     .menu-btn .label{display:flex;align-items:center;gap:14px}
     .menu-btn svg{width:28px;height:28px}
     .menu-btn .accent{background:linear-gradient(90deg,var(--amber),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -28,13 +29,14 @@
     header h1{margin:0 0 8px 0}
     .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.06);margin-bottom:14px}
 
-    /* Footer bar with matching buttons */
+    /* Footer bar with matching small menu button */
     .footer-bar{position:fixed;left:0;right:0;bottom:18px;display:flex;justify-content:center;z-index:2100;pointer-events:auto}
-    .footer-panel{display:flex;gap:12px;padding:10px 14px;border-radius:14px;background:linear-gradient(180deg, rgba(8,10,13,0.9), rgba(10,12,15,0.94));box-shadow:0 12px 30px rgba(2,6,23,0.45);align-items:center}
-    .footer-btn{padding:10px 14px;border-radius:10px;background:transparent;color:var(--amber);border:1px solid rgba(255,255,255,0.06);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px}
+    .footer-panel{display:flex;gap:12px;padding:6px 10px;border-radius:14px;background:linear-gradient(180deg, rgba(8,10,13,0.9), rgba(10,12,15,0.94));box-shadow:0 12px 30px rgba(2,6,23,0.45);align-items:center}
+    .footer-btn{appearance:none;border:none;background:transparent;color:var(--amber);font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px}
+    .footer-btn.menu-small{padding:8px 10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);color:#fff}
     .footer-btn svg{width:18px;height:18px}
 
-    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}.footer-panel{padding:8px}}
+    @media(max-width:520px){.menu{padding:20px}.menu-btn{padding:14px 16px}.menu-btn svg{width:22px;height:22px}.footer-panel{padding:6px}}
   </style>
 </head>
 <body>
@@ -109,15 +111,10 @@
     </footer>
   </main>
 
-  <!-- Footer bar with actions: refresh + show menu -->
+  <!-- Footer bar with only Show Menu button (short, aligned with menu style) -->
   <div class="footer-bar">
     <div class="footer-panel">
-      <button class="footer-btn" id="btnRefresh" title="Sayfayı Yenile">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12a9 9 0 1 1-2.93-6.36L21 5v7h-7l1.76-1.76A7 7 0 1 0 19.07 18.07L21 20.95A9 9 0 0 1 21 12z" fill="currentColor"/></svg>
-        Sayfayı Yenile
-      </button>
-
-      <button class="footer-btn" id="btnShowMenu" title="Menüyü Göster">
+      <button class="footer-btn menu-small" id="btnShowMenu" title="Menüyü Göster">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         Menüyü Göster
       </button>
@@ -127,7 +124,6 @@
   <script>
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn'));
-    const btnRefresh = document.getElementById('btnRefresh');
     const btnShowMenu = document.getElementById('btnShowMenu');
 
     // menu buttons animation and navigation
@@ -144,9 +140,6 @@
         }
       });
     });
-
-    // footer: refresh
-    btnRefresh.addEventListener('click', ()=> location.reload());
 
     // footer: show menu (reopen overlay)
     btnShowMenu.addEventListener('click', ()=>{
