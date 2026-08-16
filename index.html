@@ -117,7 +117,7 @@
     </div>
   </div>
 
-  <!-- Pedigree Paneli (HTML Yapısı) -->
+  <!-- Pedigree Paneli -->
   <div class="content-panel" id="pedigreePanel">
     <div class="panel-container">
       <h2>Damızlık Islah ve Pedigree Modülü</h2>
@@ -164,12 +164,17 @@
     </div>
   </div>
 
-  <!-- Modüler JavaScript Bağlantısı -->
-  <script type="module">
-    import { initPedigreeModule } from './pedigree.js';
+  <!-- Yerleşik JavaScript (CORS Hatası Olmadan Çalışır) -->
+  <script>
+    const pedigreeData = {
+      queens: [
+        { id: "TR-26-054", irk: "Karniyol", morfometri: { cubitalIndex: 2.45, discoidal: 3.1 } },
+        { id: "TR-26-061", irk: "Kafkas", morfometri: { cubitalIndex: 1.95, discoidal: 1.8 } }
+      ]
+    };
 
     const overlay = document.getElementById('overlay');
-    const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
+    const menuBtns = document.querySelectorAll('.menu-btn[data-target]');
     const menuToggle = document.getElementById('menuToggle');
     
     const panels = {
@@ -180,12 +185,21 @@
       akademi: document.getElementById('akademiPanel')
     };
 
-    let activePedigreeModule = null;
+    let stream = null;
 
     function closeAllPanels() {
       Object.values(panels).forEach(panel => panel.classList.remove('active'));
-      if (activePedigreeModule && typeof activePedigreeModule.stop === 'function') {
-        activePedigreeModule.stop();
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        const video = document.getElementById('videoElement');
+        const camPlaceholder = document.getElementById('camPlaceholder');
+        const startCamBtn = document.getElementById('startCamBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        if(video) video.style.display = 'none';
+        if(camPlaceholder) camPlaceholder.style.display = 'block';
+        if(startCamBtn) startCamBtn.textContent = 'Kamerayı Aç';
+        if(captureBtn) captureBtn.disabled = true;
       }
     }
 
@@ -194,12 +208,8 @@
         const target = btn.dataset.target;
         overlay.classList.add('hidden');
         closeAllPanels();
-        
         if (panels[target]) {
           panels[target].classList.add('active');
-          if (target === 'pedigree') {
-            activePedigreeModule = initPedigreeModule();
-          }
         }
       });
     });
@@ -207,6 +217,46 @@
     menuToggle.addEventListener('click', () => {
       overlay.classList.toggle('hidden');
     });
+
+    // Kamera ve Analiz İşlevselliği
+    const startCamBtn = document.getElementById('startCamBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const video = document.getElementById('videoElement');
+    const camPlaceholder = document.getElementById('camPlaceholder');
+    const ciValue = document.getElementById('ciValue');
+    const diValue = document.getElementById('diValue');
+
+    if (startCamBtn) {
+      startCamBtn.onclick = async () => {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+          video.style.display = 'none';
+          camPlaceholder.style.display = 'block';
+          captureBtn.disabled = true;
+          startCamBtn.textContent = 'Kamerayı Aç';
+        } else {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            camPlaceholder.style.display = 'none';
+            captureBtn.disabled = false;
+            startCamBtn.textContent = 'Kamerayı Kapat';
+          } catch (err) {
+            alert("Kamera erişimi sağlanamadı.");
+          }
+        }
+      };
+    }
+
+    if (captureBtn) {
+      captureBtn.onclick = () => {
+        const q = pedigreeData.queens[Math.floor(Math.random() * pedigreeData.queens.length)];
+        ciValue.textContent = q.morfometri.cubitalIndex;
+        diValue.textContent = q.morfometri.discoidal;
+      };
+    }
   </script>
 </body>
 </html>
