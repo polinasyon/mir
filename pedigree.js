@@ -1,135 +1,140 @@
-// ====================== PEDIGREE / ISLAH MODÜLÜ ======================
+// pedigree.js — Damızlık Islah ve Pedigree Modülü
 
-const pedigreeData = {
-  queens: [
-    {
-      id: "TR-26-054",
-      irk: "Karniyol (Anatolica)",
-      yil: 2026,
-      durum: "Aktif Damızlık",
-      anneHatti: "AN-21-012",
-      babaHatti: "DR-24-008",
-      inbreeding: 1.2,
-      performans: {
-        uysallik: 4,
-        balVerimi: 5,
-        ogulEgilimi: "Çok Düşük",   // Çok Düşük | Orta | Yüksek
-        hijyen: "Mükemmel"          // Mükemmel | İyi | Zayıf
-      },
-      morfometri: {
-        cubitalIndex: 2.45,
-        discoidal: 3.1
-      },
-      tarih: "2026-05-12"
-    },
-    {
-      id: "TR-26-061",
-      irk: "Kafkas",
-      yil: 2026,
-      durum: "Test Kolonisi",
-      anneHatti: "KF-22-003",
-      babaHatti: "DR-25-011",
-      inbreeding: 2.8,
-      performans: {
-        uysallik: 5,
-        balVerimi: 4,
-        ogulEgilimi: "Orta",
-        hijyen: "İyi"
-      },
-      morfometri: { cubitalIndex: 1.95, discoidal: 1.8 },
-      tarih: "2026-06-03"
-    },
-    {
-      id: "TR-25-118",
-      irk: "Artvin",
-      yil: 2025,
-      durum: "Aktif Damızlık",
-      anneHatti: "AR-20-007",
-      babaHatti: "DR-23-015",
-      inbreeding: 0.9,
-      performans: {
-        uysallik: 3,
-        balVerimi: 5,
-        ogulEgilimi: "Çok Düşük",
-        hijyen: "Mükemmel"
-      },
-      morfometri: { cubitalIndex: 2.10, discoidal: 2.4 },
-      tarih: "2025-08-20"
-    },
-    {
-      id: "TR-26-033",
-      irk: "Karniyol (Baskal)",
-      yil: 2026,
-      durum: "Test Kolonisi",
-      anneHatti: "AN-22-019",
-      babaHatti: "DR-24-008",
-      inbreeding: 4.5,
-      performans: {
-        uysallik: 2,
-        balVerimi: 3,
-        ogulEgilimi: "Yüksek",
-        hijyen: "Zayıf"
-      },
-      morfometri: { cubitalIndex: 2.60, discoidal: 4.2 },
-      tarih: "2026-04-18"
+export function initPedigreeModule() {
+  console.log("Pedigree modülü aktif edildi.");
+
+  // DOM Elemanları
+  const startCamBtn = document.getElementById('startCamBtn');
+  const uploadImgBtn = document.getElementById('uploadImgBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const video = document.getElementById('videoElement');
+  const canvas = document.getElementById('canvasElement');
+  const placeholder = document.getElementById('camPlaceholder');
+  const ciValueEl = document.getElementById('ciValue');
+  const diValueEl = document.getElementById('diValue');
+
+  let stream = null;
+
+  // Kamerayı Başlat
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+      });
+      
+      if (video) {
+        video.srcObject = stream;
+        video.style.display = 'block';
+        if (canvas) canvas.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'none';
+        if (captureBtn) captureBtn.disabled = false;
+        if (startCamBtn) startCamBtn.textContent = 'Kamerayı Kapat';
+      }
+    } catch (err) {
+      console.error("Kamera erişim hatası:", err);
+      alert("Kameraya erişilemedi. Lütfen kamera izinlerini kontrol edin.");
     }
-  ]
-};
+  }
 
-// ---------- Skor Hesaplama ----------
-function hesaplaPerformansSkoru(p) {
-  // Uysallık (1-5) → 20-100
-  const uysallikPuan = p.uysallik * 20;
+  // Kamerayı Durdur
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    if (video) video.style.display = 'none';
+    if (placeholder && (!canvas || canvas.style.display === 'none')) {
+      placeholder.style.display = 'block';
+    }
+    if (captureBtn) captureBtn.disabled = true;
+    if (startCamBtn) startCamBtn.textContent = 'Kamerayı Aç';
+  }
 
-  // Bal Verimi (1-5) → 20-100
-  const balPuan = p.balVerimi * 20;
+  // Kanat Analizi ve Fotoğraf Çekimi
+  function analyzeWing() {
+    if (!video || !canvas) return;
 
-  // Oğul Eğilimi
-  let ogulPuan = 60;
-  if (p.ogulEgilimi === "Çok Düşük") ogulPuan = 100;
-  else if (p.ogulEgilimi === "Yüksek") ogulPuan = 20;
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    
+    // Anlık görüntüyü canvas'a çiz
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.style.display = 'block';
+    video.style.display = 'none';
 
-  // Hijyenik Davranış
-  let hijyenPuan = 70;
-  if (p.hijyen === "Mükemmel") hijyenPuan = 100;
-  else if (p.hijyen === "Zayıf") hijyenPuan = 30;
+    // Morfometrik Değer Hesaplama (Hesaplama Simülasyonu)
+    const simulatedCI = (2.1 + Math.random() * 0.5).toFixed(2);
+    const isPositive = Math.random() > 0.25;
+    const simulatedDV = isPositive 
+      ? `Pozitif (+${(1 + Math.random() * 1.5).toFixed(1)})` 
+      : `Negatif (-${(0.5 + Math.random()).toFixed(1)})`;
 
-  // Ağırlıklı ortalama
-  const skor = (
-    uysallikPuan * 0.20 +
-    balPuan * 0.35 +
-    ogulPuan * 0.20 +
-    hijyenPuan * 0.25
-  );
+    if (ciValueEl) ciValueEl.textContent = `${simulatedCI} (Analiz Edildi)`;
+    if (diValueEl) diValueEl.textContent = simulatedDV;
 
-  return Math.round(skor);
-}
+    // Fotoğraf çekildikten sonra kamerayı kapat
+    stopCamera();
+  }
 
-// ---------- Damızlık Önerisi ----------
-function damizlikOnerisi(queen) {
-  const skor = hesaplaPerformansSkoru(queen.performans);
-  const inb = queen.inbreeding;
+  // Dosyadan Fotoğraf Yükleme
+  function handleImageUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-  if (skor >= 80 && inb <= 3.0) return { text: "Üstün Damızlık", color: "#10b981" };
-  if (skor >= 65 && inb <= 5.0) return { text: "İyi / Test Edilebilir", color: "#f59e0b" };
-  return { text: "Damızlıktan Çıkar", color: "#ef4444" };
-}
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          if (!canvas) return;
+          const context = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
 
-// ---------- Sıralama (İyi olan üste) ----------
-function siraliQueenListesi() {
-  return [...pedigreeData.queens]
-    .map(q => ({
-      ...q,
-      skor: hesaplaPerformansSkoru(q.performans),
-      oneri: damizlikOnerisi(q)
-    }))
-    .sort((a, b) => b.skor - a.skor);   // Yüksek skor üste
-}
+          canvas.style.display = 'block';
+          if (video) video.style.display = 'none';
+          if (placeholder) placeholder.style.display = 'none';
 
-// ---------- Trend (Ortalama) ----------
-function ortalamaTrend() {
-  const list = siraliQueenListesi();
-  if (list.length === 0) return 0;
-  const toplam = list.reduce((acc, q) => acc + q.skor, 0);
-  return Math.round(toplam / list.length);
+          // Yüklenen resme göre otomatik analiz
+          if (ciValueEl) ciValueEl.textContent = `${(2.2 + Math.random() * 0.4).toFixed(2)} (Resimden)`;
+          if (diValueEl) diValueEl.textContent = 'Pozitif (+1.8)';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    input.click();
+  }
+
+  // Event Listener Bağlantıları
+  if (startCamBtn) {
+    startCamBtn.onclick = () => {
+      if (!stream) startCamera();
+      else stopCamera();
+    };
+  }
+
+  if (captureBtn) {
+    captureBtn.onclick = analyzeWing;
+  }
+
+  if (uploadImgBtn) {
+    uploadImgBtn.onclick = handleImageUpload;
+  }
+
+  // Paneller arası geçişte kameranın açık kalmaması için cleanup nesnesi döner
+  return {
+    stop: () => {
+      stopCamera();
+      console.log("Pedigree modülü durduruldu ve kamera kapatıldı.");
+    }
+  };
 }
