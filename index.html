@@ -165,11 +165,17 @@
       <p style="color:var(--muted); margin-top:-10px;">Bölgesel flora ve arıcılık literatürü.</p>
     </div>
   </div>
-
-  <!-- Modüler JavaScript Entegrasyonu -->
   <script type="module">
     import { initPedigreeModule } from './pedigree.js';
-    import { initNektarModule } from './nektar.js';
+
+    // Nektar modülünü güvenli (dinamik) içe aktarma
+    let initNektarModule = () => console.log("Nektar modülü henüz eklenmedi.");
+    try {
+      const nektarMod = await import('./nektar.js');
+      if (nektarMod.initNektarModule) initNektarModule = nektarMod.initNektarModule;
+    } catch (e) {
+      console.warn("nektar.js bulunamadı, varsayılan modül kullanılıyor.");
+    }
 
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
@@ -186,9 +192,12 @@
     let activePedigreeModule = null;
 
     function closeAllPanels() {
-      Object.values(panels).forEach(panel => panel.classList.remove('active'));
+      Object.values(panels).forEach(panel => {
+        if (panel) panel.classList.remove('active');
+      });
       if (activePedigreeModule && typeof activePedigreeModule.stop === 'function') {
         activePedigreeModule.stop();
+        activePedigreeModule = null;
       }
     }
 
@@ -201,7 +210,6 @@
         if (panels[target]) {
           panels[target].classList.add('active');
           
-          // Modül tetiklemeleri
           if (target === 'pedigree') {
             activePedigreeModule = initPedigreeModule();
           } else if (target === 'nektar') {
@@ -215,5 +223,7 @@
       overlay.classList.toggle('hidden');
     });
   </script>
+
+  
 </body>
 </html>
