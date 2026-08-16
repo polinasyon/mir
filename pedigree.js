@@ -13,8 +13,8 @@ const pedigreeData = {
       performans: {
         uysallik: 4,
         balVerimi: 5,
-        ogulEgilimi: "Çok Düşük",
-        hijyen: "Mükemmel"
+        ogulEgilimi: "Çok Düşük",   // Çok Düşük | Orta | Yüksek
+        hijyen: "Mükemmel"          // Mükemmel | İyi | Zayıf
       },
       morfometri: {
         cubitalIndex: 2.45,
@@ -78,17 +78,23 @@ const pedigreeData = {
 
 // ---------- Skor Hesaplama ----------
 function hesaplaPerformansSkoru(p) {
+  // Uysallık (1-5) → 20-100
   const uysallikPuan = p.uysallik * 20;
+
+  // Bal Verimi (1-5) → 20-100
   const balPuan = p.balVerimi * 20;
-  
+
+  // Oğul Eğilimi
   let ogulPuan = 60;
   if (p.ogulEgilimi === "Çok Düşük") ogulPuan = 100;
   else if (p.ogulEgilimi === "Yüksek") ogulPuan = 20;
-  
+
+  // Hijyenik Davranış
   let hijyenPuan = 70;
   if (p.hijyen === "Mükemmel") hijyenPuan = 100;
   else if (p.hijyen === "Zayıf") hijyenPuan = 30;
 
+  // Ağırlıklı ortalama
   const skor = (
     uysallikPuan * 0.20 +
     balPuan * 0.35 +
@@ -117,7 +123,7 @@ function siraliQueenListesi() {
       skor: hesaplaPerformansSkoru(q.performans),
       oneri: damizlikOnerisi(q)
     }))
-    .sort((a, b) => b.skor - a.skor);
+    .sort((a, b) => b.skor - a.skor);   // Yüksek skor üste
 }
 
 // ---------- Trend (Ortalama) ----------
@@ -126,58 +132,4 @@ function ortalamaTrend() {
   if (list.length === 0) return 0;
   const toplam = list.reduce((acc, q) => acc + q.skor, 0);
   return Math.round(toplam / list.length);
-}
-
-// =========================================================================
-// HTML TARAFINDAN ÇAĞRILAN ANA FONKSİYON (CORS ve Modül mantığı için şart)
-// =========================================================================
-export function initPedigreeModule() {
-  console.log("Pedigree Modülü Başarıyla Yüklendi!");
-  
-  // Arka planda verilerin çalıştığını görmek için konsola basıyoruz
-  console.log("Genel Arılık Performans Ortalaması:", ortalamaTrend());
-  console.table(siraliQueenListesi());
-
-  // HTML'deki elementleri seçiyoruz
-  const startCamBtn = document.getElementById('startCamBtn');
-  const videoElement = document.getElementById('videoElement');
-  const camPlaceholder = document.getElementById('camPlaceholder');
-  const captureBtn = document.getElementById('captureBtn');
-  
-  let stream = null;
-
-  // Kamerayı açma işlemi
-  if (startCamBtn) {
-    startCamBtn.onclick = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoElement.style.display = "block";
-        camPlaceholder.style.display = "none";
-        videoElement.srcObject = stream;
-        
-        if (captureBtn) captureBtn.disabled = false;
-        startCamBtn.innerText = "Kamera Açık";
-      } catch (err) {
-        console.error("Kamera Hatası:", err);
-        alert("Kameraya erişilemedi! Lütfen tarayıcı izinlerini kontrol edin.");
-      }
-    };
-  }
-
-  // Başka menüye geçildiğinde kamerayı durdurmak için gerekli olan obje
-  return {
-    stop: () => {
-      console.log("Pedigree modülünden çıkıldı, kamera durduruluyor...");
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      if (videoElement) {
-        videoElement.style.display = "none";
-        videoElement.srcObject = null;
-      }
-      if (camPlaceholder) camPlaceholder.style.display = "block";
-      if (startCamBtn) startCamBtn.innerText = "Kamerayı Aç";
-      if (captureBtn) captureBtn.disabled = true;
-    }
-  };
 }
