@@ -107,7 +107,6 @@
     <div class="panel-container">
       <h2>Nektar Akım ve Flora Skoru</h2>
       <p style="color:var(--muted); margin-top:-10px;">Open-Meteo hava verileri ve bölgesel flora takvimine göre anlık nektar potansiyeli.</p>
-      <!-- Nektar modülünün verileri buraya basılacak -->
       <div id="nektarInfo" style="color:#fff;">Nektar akım verileri yükleniyor...</div>
     </div>
   </div>
@@ -119,7 +118,6 @@
     </div>
   </div>
 
-  <!-- Pedigree Paneli -->
   <div class="content-panel" id="pedigreePanel">
     <div class="panel-container">
       <h2>Damızlık Islah ve Pedigree Modülü</h2>
@@ -165,18 +163,8 @@
       <p style="color:var(--muted); margin-top:-10px;">Bölgesel flora ve arıcılık literatürü.</p>
     </div>
   </div>
+
   <script type="module">
-    import { initPedigreeModule } from './pedigree.js';
-
-    // Nektar modülünü güvenli (dinamik) içe aktarma
-    let initNektarModule = () => console.log("Nektar modülü henüz eklenmedi.");
-    try {
-      const nektarMod = await import('./nektar.js');
-      if (nektarMod.initNektarModule) initNektarModule = nektarMod.initNektarModule;
-    } catch (e) {
-      console.warn("nektar.js bulunamadı, varsayılan modül kullanılıyor.");
-    }
-
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
     const menuToggle = document.getElementById('menuToggle');
@@ -201,8 +189,9 @@
       }
     }
 
+    // Tıklama olayları bağımsız olarak bağlanır (Modül dosyaları olmasa bile sayfa açılır)
     menuBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const target = btn.dataset.target;
         overlay.classList.add('hidden');
         closeAllPanels();
@@ -210,10 +199,31 @@
         if (panels[target]) {
           panels[target].classList.add('active');
           
+          // Pedigree Modülü Çağrısı
           if (target === 'pedigree') {
-            activePedigreeModule = initPedigreeModule();
-          } else if (target === 'nektar') {
-            initNektarModule();
+            try {
+              const mod = await import('./pedigree.js');
+              if (mod && mod.initPedigreeModule) {
+                activePedigreeModule = mod.initPedigreeModule();
+              }
+            } catch (err) {
+              console.error("pedigree.js yüklenemedi:", err);
+            }
+          } 
+          // Nektar Modülü Çağrısı
+          else if (target === 'nektar') {
+            try {
+              const mod = await import('./nektar.js');
+              if (mod && mod.initNektarModule) {
+                mod.initNektarModule();
+              }
+            } catch (err) {
+              console.error("nektar.js yüklenemedi:", err);
+              const info = document.getElementById('nektarInfo');
+              if (info) {
+                info.innerHTML = '<p style="color:#ef4444;">nektar.js dosyası depoda bulunamadı!</p>';
+              }
+            }
           }
         }
       });
@@ -224,6 +234,5 @@
     });
   </script>
 
-  
 </body>
 </html>
