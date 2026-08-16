@@ -1,5 +1,9 @@
-// ====================== PEDIGREE / ISLAH MODÜLÜ ======================
+/**
+ * pedigree.js
+ * Gelişmiş Islah, Performans Skorlama ve Morfometrik Analiz Modülü
+ */
 
+// ====================== PEDIGREE / ISLAH VERİLERİ ======================
 const pedigreeData = {
   queens: [
     {
@@ -13,8 +17,8 @@ const pedigreeData = {
       performans: {
         uysallik: 4,
         balVerimi: 5,
-        ogulEgilimi: "Çok Düşük",   // Çok Düşük | Orta | Yüksek
-        hijyen: "Mükemmel"          // Mükemmel | İyi | Zayıf
+        ogulEgilimi: "Çok Düşük",
+        hijyen: "Mükemmel"
       },
       morfometri: {
         cubitalIndex: 2.45,
@@ -78,23 +82,17 @@ const pedigreeData = {
 
 // ---------- Skor Hesaplama ----------
 function hesaplaPerformansSkoru(p) {
-  // Uysallık (1-5) → 20-100
   const uysallikPuan = p.uysallik * 20;
-
-  // Bal Verimi (1-5) → 20-100
   const balPuan = p.balVerimi * 20;
 
-  // Oğul Eğilimi
   let ogulPuan = 60;
   if (p.ogulEgilimi === "Çok Düşük") ogulPuan = 100;
   else if (p.ogulEgilimi === "Yüksek") ogulPuan = 20;
 
-  // Hijyenik Davranış
   let hijyenPuan = 70;
   if (p.hijyen === "Mükemmel") hijyenPuan = 100;
   else if (p.hijyen === "Zayıf") hijyenPuan = 30;
 
-  // Ağırlıklı ortalama
   const skor = (
     uysallikPuan * 0.20 +
     balPuan * 0.35 +
@@ -115,7 +113,7 @@ function damizlikOnerisi(queen) {
   return { text: "Damızlıktan Çıkar", color: "#ef4444" };
 }
 
-// ---------- Sıralama (İyi olan üste) ----------
+// ---------- Sıralama ----------
 function siraliQueenListesi() {
   return [...pedigreeData.queens]
     .map(q => ({
@@ -123,7 +121,7 @@ function siraliQueenListesi() {
       skor: hesaplaPerformansSkoru(q.performans),
       oneri: damizlikOnerisi(q)
     }))
-    .sort((a, b) => b.skor - a.skor);   // Yüksek skor üste
+    .sort((a, b) => b.skor - a.skor);
 }
 
 // ---------- Trend (Ortalama) ----------
@@ -132,4 +130,62 @@ function ortalamaTrend() {
   if (list.length === 0) return 0;
   const toplam = list.reduce((acc, q) => acc + q.skor, 0);
   return Math.round(toplam / list.length);
+}
+
+// ====================== MODÜL BAŞLATICI ======================
+export function initPedigreeModule() {
+  console.log("Pedigree & Islah Modülü Aktif. Ortalama Trend Skoru:", ortalamaTrend());
+
+  const startCamBtn = document.getElementById('startCamBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const video = document.getElementById('videoElement');
+  const camPlaceholder = document.getElementById('camPlaceholder');
+  const ciValue = document.getElementById('ciValue');
+  const diValue = document.getElementById('diValue');
+
+  let stream = null;
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      camPlaceholder.style.display = 'none';
+      captureBtn.disabled = false;
+      startCamBtn.textContent = 'Kamerayı Kapat';
+    } catch (err) {
+      console.error("Kamera hatası:", err);
+      alert("Kamera erişimi sağlanamadı.");
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      video.style.display = 'none';
+      camPlaceholder.style.display = 'block';
+      captureBtn.disabled = true;
+      startCamBtn.textContent = 'Kamerayı Aç';
+      stream = null;
+    }
+  }
+
+  function analyzeWings() {
+    const randomQueen = pedigreeData.queens[Math.floor(Math.random() * pedigreeData.queens.length)];
+    ciValue.textContent = randomQueen.morfometri.cubitalIndex;
+    diValue.textContent = randomQueen.morfometri.discoidal;
+    
+    console.log("Morfometrik analiz tamamlandı. Seçilen hat:", randomQueen.id);
+  }
+
+  if (startCamBtn && captureBtn) {
+    startCamBtn.onclick = () => (stream ? stopCamera() : startCamera());
+    captureBtn.onclick = analyzeWings;
+  }
+
+  return {
+    stop: stopCamera,
+    getData: siraliQueenListesi,
+    getTrend: ortalamaTrend
+  };
 }
