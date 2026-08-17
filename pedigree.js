@@ -1,66 +1,25 @@
-// pedigree.js — Garanti Küresel Çalışma Yapısı
+// pedigree.js — Modül Çakışmasız Tam Çalışan Yapı
 
 const STORAGE_KEY = 'polinasyon_pedigree_db';
 
-// Hafızadan Verileri Getirme
 function getStoredQueens() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-    {
-      id: "TR-26-054",
-      irk: "Karniyol",
-      anneHatti: "AN-24-012",
-      babaHatti: "DR-25-008",
-      hircinlik: "Çok Sakin (1/5)",
-      balVerimi: "85 kg / Sezon",
-      vshSkoru: "%92"
-    }
-  ];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+      {
+        id: "TR-26-054",
+        irk: "Karniyol",
+        anneHatti: "AN-24-012",
+        babaHatti: "DR-25-008",
+        hircinlik: "Çok Sakin (1/5)",
+        balVerimi: "85 kg / Sezon",
+        vshSkoru: "%92"
+      }
+    ];
+  } catch (e) {
+    return [];
+  }
 }
 
-// 1. KÜRESEL KAYDET FONKSİYONU
-window.saveQueenFromForm = function() {
-  const idInput = document.getElementById('qId');
-  const id = idInput ? idInput.value.trim() : '';
-
-  if (!id) {
-    alert("Lütfen Küpe / Numara alanını doldurun!");
-    return;
-  }
-
-  const queens = getStoredQueens();
-  const newQueen = {
-    id: id,
-    irk: document.getElementById('qIrk')?.value || 'Karniyol',
-    anneHatti: document.getElementById('qAba')?.value.trim() || '',
-    babaHatti: document.getElementById('qBaba')?.value.trim() || '',
-    hircinlik: document.getElementById('qHircinlik')?.value || '',
-    balVerimi: document.getElementById('qBal')?.value.trim() || '',
-    vshSkoru: document.getElementById('qVsh')?.value.trim() || ''
-  };
-
-  const existingIndex = queens.findIndex(q => q.id === id);
-  if (existingIndex > -1) {
-    queens[existingIndex] = newQueen;
-  } else {
-    queens.push(newQueen);
-  }
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
-  window.renderPedigreeTable();
-  alert(`${id} başarıyla kaydedildi!`);
-};
-
-// 2. KÜRESEL SİL FONKSİYONU
-window.deleteQueen = function(id) {
-  if (confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) {
-    let queens = getStoredQueens();
-    queens = queens.filter(q => q.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
-    window.renderPedigreeTable();
-  }
-};
-
-// 3. KÜRESEL TABLO ÇİZİCİ
 window.renderPedigreeTable = function() {
   const container = document.getElementById('pedigreeTableContainer');
   if (!container) return;
@@ -111,7 +70,48 @@ window.renderPedigreeTable = function() {
   container.innerHTML = html;
 };
 
-// Sayfa ilk açıldığında tabloyu yükle
+window.saveQueenFromForm = function() {
+  const idInput = document.getElementById('qId');
+  const id = idInput ? idInput.value.trim() : '';
+
+  if (!id) {
+    alert("Lütfen Küpe / Numara alanını doldurun!");
+    return;
+  }
+
+  const queens = getStoredQueens();
+  const newQueen = {
+    id: id,
+    irk: document.getElementById('qIrk')?.value || 'Karniyol',
+    anneHatti: document.getElementById('qAba')?.value.trim() || '',
+    babaHatti: document.getElementById('qBaba')?.value.trim() || '',
+    hircinlik: document.getElementById('qHircinlik')?.value || '',
+    balVerimi: document.getElementById('qBal')?.value.trim() || '',
+    vshSkoru: document.getElementById('qVsh')?.value.trim() || ''
+  };
+
+  const existingIndex = queens.findIndex(q => q.id === id);
+  if (existingIndex > -1) {
+    queens[existingIndex] = newQueen;
+  } else {
+    queens.push(newQueen);
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
+  window.renderPedigreeTable();
+  alert(`${id} başarıyla kaydedildi!`);
+};
+
+window.deleteQueen = function(id) {
+  if (confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) {
+    let queens = getStoredQueens();
+    queens = queens.filter(q => q.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
+    window.renderPedigreeTable();
+  }
+};
+
+// Sayfa hazır olduğunda tabloyu hemen çiz
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => window.renderPedigreeTable());
 } else {
