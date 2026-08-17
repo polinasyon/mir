@@ -1,8 +1,8 @@
-// pedigree.js — Kaydet & Sil Destekli Islah Modülü
+// pedigree.js — Dinamik Kaydet & Sil Destekli Islah Modülü
 
 const STORAGE_KEY = 'polinasyon_pedigree_db';
 
-// 1. Veri Deposu (LocalStorage Destekli)
+// Veri Yapısı (LocalStorage varsa oradan alır, yoksa varsayılan verileri yükler)
 export const pedigreeData = {
   queens: JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
     {
@@ -14,16 +14,26 @@ export const pedigreeData = {
       balVerimi: "85 kg / Sezon",
       vshSkoru: "%92",
       morfometri: { kubitalIndeks: "2.45", diskoidalKayma: "Pozitif (+2.1)" }
+    },
+    {
+      id: "AN-24-012",
+      irk: "Kafkas",
+      anneHatti: "AN-22-001",
+      babaHatti: "DR-23-005",
+      hircinlik: "Uysal (2/5)",
+      balVerimi: "92 kg / Sezon",
+      vshSkoru: "%95",
+      morfometri: { kubitalIndeks: "2.10", diskoidalKayma: "Pozitif (+1.8)" }
     }
   ]
 };
 
-// Veriyi Hafızaya Yazma
+// Yerel Depolamaya Kaydetme
 export function saveToStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pedigreeData.queens));
 }
 
-// 2. Dynamic Tablo Oluşturma ve Silme Butonları
+// Sil Butonlu Dinamik Tablo Çizici
 export function renderPedigreeTable() {
   const container = document.getElementById('pedigreeTableContainer');
   if (!container) return;
@@ -62,7 +72,7 @@ export function renderPedigreeTable() {
         <td style="padding:8px; color:#10b981;">${q.balVerimi || '-'}</td>
         <td style="padding:8px;">${q.vshSkoru || '-'}</td>
         <td style="padding:8px; text-align:center;">
-          <button class="delete-btn" data-id="${q.id}" style="background:#ef4444; border:none; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Sil</button>
+          <button class="btn-delete" data-id="${q.id}" style="background:#ef4444; border:none; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Sil</button>
         </td>
       </tr>
     `;
@@ -71,30 +81,33 @@ export function renderPedigreeTable() {
   html += `</tbody></table></div>`;
   container.innerHTML = html;
 
-  // Sil Butonu Etkinleştirme
-  container.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.onclick = (e) => deleteQueen(e.target.getAttribute('data-id'));
+  // Dinamik Sil Butonlarına Olay Bağlama
+  container.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.onclick = (e) => {
+      const id = e.target.getAttribute('data-id');
+      deleteQueen(id);
+    };
   });
 }
 
-// 3. Arı Silme Fonksiyonu
+// Kayıt Silme Fonksiyonu
 export function deleteQueen(id) {
-  if (confirm(`${id} numaralı damızlık kaydını silmek istediğinize emin misiniz?`)) {
+  if (confirm(`${id} küpe numaralı arıyı silmek istediğinizden emin misiniz?`)) {
     pedigreeData.queens = pedigreeData.queens.filter(q => q.id !== id);
     saveToStorage();
     renderPedigreeTable();
   }
 }
 
-// 4. Arı Kaydetme / Güncelleme Fonksiyonu
+// Formdan Yeni Arı Kaydetme Fonksiyonu
 export function saveQueenFromForm() {
   const id = document.getElementById('qId')?.value.trim();
   if (!id) {
-    alert("Lütfen Küpe / Numara alanını doldurun!");
+    alert("Lütfen bir Küpe / Numara girin!");
     return;
   }
 
-  const queenObject = {
+  const newQueen = {
     id: id,
     irk: document.getElementById('qIrk')?.value || 'Karniyol',
     anneHatti: document.getElementById('qAba')?.value.trim() || '',
@@ -102,17 +115,17 @@ export function saveQueenFromForm() {
     hircinlik: document.getElementById('qHircinlik')?.value || '',
     balVerimi: document.getElementById('qBal')?.value.trim() || '',
     vshSkoru: document.getElementById('qVsh')?.value.trim() || '',
-    morfometri: { 
+    morfometri: {
       kubitalIndeks: document.getElementById('ciValue')?.textContent || "2.45",
-      diskoidalKayma: document.getElementById('diValue')?.textContent || "Pozitif" 
+      diskoidalKayma: document.getElementById('diValue')?.textContent || "Pozitif"
     }
   };
 
-  const index = pedigreeData.queens.findIndex(q => q.id === id);
-  if (index > -1) {
-    pedigreeData.queens[index] = queenObject;
+  const existingIndex = pedigreeData.queens.findIndex(q => q.id === id);
+  if (existingIndex > -1) {
+    pedigreeData.queens[existingIndex] = newQueen;
   } else {
-    pedigreeData.queens.push(queenObject);
+    pedigreeData.queens.push(newQueen);
   }
 
   saveToStorage();
@@ -120,14 +133,16 @@ export function saveQueenFromForm() {
   alert(`${id} başarıyla kaydedildi!`);
 }
 
-// 5. Modül Başlatıcı
+// Modül Başlatıcı
 export function initPedigreeModule() {
   renderPedigreeTable();
 
   const saveBtn = document.getElementById('saveQueenBtn');
-  if (saveBtn) saveBtn.onclick = saveQueenFromForm;
+  if (saveBtn) {
+    saveBtn.onclick = saveQueenFromForm;
+  }
 
-  // Kamera Mantığı
+  // Kamera İşlemleri
   let stream = null;
   const startCamBtn = document.getElementById('startCamBtn');
   const captureBtn = document.getElementById('captureBtn');
@@ -146,7 +161,7 @@ export function initPedigreeModule() {
         if (startCamBtn) startCamBtn.textContent = 'Kamerayı Kapat';
       }
     } catch (err) {
-      alert("Kamera başlatılamadı.");
+      alert("Kamera başlatılamadı!");
     }
   }
 
