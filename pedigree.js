@@ -1,9 +1,10 @@
-// pedigree.js — Hatasız Kaydet & Sil Modülü
+// pedigree.js — Garanti Küresel Çalışma Yapısı
 
 const STORAGE_KEY = 'polinasyon_pedigree_db';
 
-export const pedigreeData = {
-  queens: JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+// Hafızadan Verileri Getirme
+function getStoredQueens() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
     {
       id: "TR-26-054",
       irk: "Karniyol",
@@ -13,18 +14,60 @@ export const pedigreeData = {
       balVerimi: "85 kg / Sezon",
       vshSkoru: "%92"
     }
-  ]
-};
-
-export function saveToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pedigreeData.queens));
+  ];
 }
 
-export function renderPedigreeTable() {
+// 1. KÜRESEL KAYDET FONKSİYONU
+window.saveQueenFromForm = function() {
+  const idInput = document.getElementById('qId');
+  const id = idInput ? idInput.value.trim() : '';
+
+  if (!id) {
+    alert("Lütfen Küpe / Numara alanını doldurun!");
+    return;
+  }
+
+  const queens = getStoredQueens();
+  const newQueen = {
+    id: id,
+    irk: document.getElementById('qIrk')?.value || 'Karniyol',
+    anneHatti: document.getElementById('qAba')?.value.trim() || '',
+    babaHatti: document.getElementById('qBaba')?.value.trim() || '',
+    hircinlik: document.getElementById('qHircinlik')?.value || '',
+    balVerimi: document.getElementById('qBal')?.value.trim() || '',
+    vshSkoru: document.getElementById('qVsh')?.value.trim() || ''
+  };
+
+  const existingIndex = queens.findIndex(q => q.id === id);
+  if (existingIndex > -1) {
+    queens[existingIndex] = newQueen;
+  } else {
+    queens.push(newQueen);
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
+  window.renderPedigreeTable();
+  alert(`${id} başarıyla kaydedildi!`);
+};
+
+// 2. KÜRESEL SİL FONKSİYONU
+window.deleteQueen = function(id) {
+  if (confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) {
+    let queens = getStoredQueens();
+    queens = queens.filter(q => q.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
+    window.renderPedigreeTable();
+  }
+};
+
+// 3. KÜRESEL TABLO ÇİZİCİ
+window.renderPedigreeTable = function() {
   const container = document.getElementById('pedigreeTableContainer');
   if (!container) return;
 
-  if (pedigreeData.queens.length === 0) {
+  const queens = getStoredQueens();
+
+  if (queens.length === 0) {
     container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:15px;">Henüz kayıtlı damızlık yok.</p>`;
     return;
   }
@@ -47,7 +90,7 @@ export function renderPedigreeTable() {
         <tbody>
   `;
 
-  pedigreeData.queens.forEach((q) => {
+  queens.forEach((q) => {
     html += `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
         <td style="padding:8px; font-weight:bold; color:var(--amber);">${q.id}</td>
@@ -58,7 +101,7 @@ export function renderPedigreeTable() {
         <td style="padding:8px; color:#10b981;">${q.balVerimi || '-'}</td>
         <td style="padding:8px;">${q.vshSkoru || '-'}</td>
         <td style="padding:8px; text-align:center;">
-          <button class="btn-delete" data-id="${q.id}" style="background:#ef4444; border:none; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Sil</button>
+          <button type="button" onclick="window.deleteQueen('${q.id}')" style="background:#ef4444; border:none; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Sil</button>
         </td>
       </tr>
     `;
@@ -66,56 +109,11 @@ export function renderPedigreeTable() {
 
   html += `</tbody></table></div>`;
   container.innerHTML = html;
+};
 
-  container.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.onclick = (e) => deleteQueen(e.target.getAttribute('data-id'));
-  });
-}
-
-export function deleteQueen(id) {
-  if (confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) {
-    pedigreeData.queens = pedigreeData.queens.filter(q => q.id !== id);
-    saveToStorage();
-    renderPedigreeTable();
-  }
-}
-
-export function saveQueenFromForm() {
-  const idInput = document.getElementById('qId');
-  const id = idInput ? idInput.value.trim() : '';
-
-  if (!id) {
-    alert("Lütfen Küpe / Numara alanını doldurun!");
-    return;
-  }
-
-  const newQueen = {
-    id: id,
-    irk: document.getElementById('qIrk')?.value || 'Karniyol',
-    anneHatti: document.getElementById('qAba')?.value.trim() || '',
-    babaHatti: document.getElementById('qBaba')?.value.trim() || '',
-    hircinlik: document.getElementById('qHircinlik')?.value || '',
-    balVerimi: document.getElementById('qBal')?.value.trim() || '',
-    vshSkoru: document.getElementById('qVsh')?.value.trim() || ''
-  };
-
-  const existingIndex = pedigreeData.queens.findIndex(q => q.id === id);
-  if (existingIndex > -1) {
-    pedigreeData.queens[existingIndex] = newQueen;
-  } else {
-    pedigreeData.queens.push(newQueen);
-  }
-
-  saveToStorage();
-  renderPedigreeTable();
-  alert(`${id} başarıyla kaydedildi!`);
-}
-
-export function initPedigreeModule() {
-  renderPedigreeTable();
-
-  const saveBtn = document.getElementById('saveQueenBtn');
-  if (saveBtn) {
-    saveBtn.onclick = saveQueenFromForm; // Tıklama olayını doğrudan bağlama
-  }
+// Sayfa ilk açıldığında tabloyu yükle
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => window.renderPedigreeTable());
+} else {
+  window.renderPedigreeTable();
 }
