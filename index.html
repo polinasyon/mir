@@ -116,10 +116,10 @@
       <div class="section-box">
         <h3>1. Ana Arı Kimlik & Soy Hatları</h3>
         <div class="form-grid">
-          <div class="form-group"><label>Küpe / Numara</label><input type="text" id="qId" value="TR-26-054"></div>
-          <div class="form-group"><label>Irk / Genetik Hat</label><select id="qIrk"><option>Karniyol</option><option>Kafkas</option><option>Anadolu</option></select></div>
-          <div class="form-group"><label>Ana (Aba) Hattı Kodu</label><input type="text" id="qAba" value="AN-24-012"></div>
-          <div class="form-group"><label>Baba Hattı (Erkek Arı)</label><input type="text" id="qBaba" value="DR-25-008"></div>
+          <div class="form-group"><label>Küpe / Numara</label><input type="text" id="qId" placeholder="Örn: TR-26-054"></div>
+          <div class="form-group"><label>Irk / Genetik Hat</label><select id="qIrk"><option>Karniyol</option><option>Kafkas</option><option>Anadolu</option><option>Belfast</option></select></div>
+          <div class="form-group"><label>Ana (Aba) Hattı Kodu</label><input type="text" id="qAba" placeholder="Örn: AN-24-012"></div>
+          <div class="form-group"><label>Baba Hattı (Erkek Arı)</label><input type="text" id="qBaba" placeholder="Örn: DR-25-008"></div>
         </div>
       </div>
 
@@ -137,13 +137,18 @@
               <option>Çok Hırçın (5/5)</option>
             </select>
           </div>
-          <div class="form-group"><label>Bal Verimi (Sezonluk Kg)</label><input type="text" id="qBal" value="85 kg / Sezon"></div>
-          <div class="form-group"><label>VSH / Varroa Direnci (%)</label><input type="text" id="qVsh" value="%92"></div>
+          <div class="form-group"><label>Bal Verimi (Sezonluk Kg)</label><input type="text" id="qBal" placeholder="Örn: 85 kg / Sezon"></div>
+          <div class="form-group"><label>VSH / Varroa Direnci (%)</label><input type="text" id="qVsh" placeholder="Örn: %92"></div>
           <div class="form-group">
             <label>Oğul Eğilimi</label>
             <select id="qOgul"><option>Düşük</option><option>Orta</option><option>Yüksek</option></select>
           </div>
         </div>
+
+        <!-- YENİ EKLENEN KAYDET BUTONU -->
+        <button class="btn-primary" id="saveQueenBtn" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
+          💾 Damızlık Ana Arıyı Kaydet / Güncelle
+        </button>
       </div>
 
       <!-- 3. Morfometrik Kanat Analizi -->
@@ -164,43 +169,11 @@
         </div>
       </div>
 
-      <!-- 4. Canlı Damızlık Popülasyon Tablosu -->
+      <!-- 4. Dinamik Popülasyon ve Sil Butonlu Tablo Konteynırı -->
       <div class="section-box">
-        <h3>4. Damızlık Popülasyon & Performans Tablosu</h3>
-        <div style="overflow-x:auto; margin-top:10px;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px; color:#fff; text-align:left;">
-            <thead>
-              <tr style="border-bottom:1px solid rgba(255,255,255,0.2); color:var(--amber);">
-                <th style="padding:8px;">Küpe</th>
-                <th style="padding:8px;">Irk</th>
-                <th style="padding:8px;">Aba (Ana)</th>
-                <th style="padding:8px;">Baba</th>
-                <th style="padding:8px;">Hırçınlık</th>
-                <th style="padding:8px;">Bal</th>
-                <th style="padding:8px;">VSH</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-                <td style="padding:8px; font-weight:bold; color:var(--amber);">TR-26-054</td>
-                <td style="padding:8px;">Karniyol</td>
-                <td style="padding:8px; color:#38bdf8;">AN-24-012</td>
-                <td style="padding:8px; color:#f97316;">DR-25-008</td>
-                <td style="padding:8px;">Çok Sakin</td>
-                <td style="padding:8px; color:#10b981;">85 kg</td>
-                <td style="padding:8px;">%92</td>
-              </tr>
-              <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-                <td style="padding:8px; font-weight:bold; color:var(--amber);">AN-24-012</td>
-                <td style="padding:8px;">Kafkas</td>
-                <td style="padding:8px; color:#38bdf8;">AN-22-001</td>
-                <td style="padding:8px; color:#f97316;">DR-23-005</td>
-                <td style="padding:8px;">Uysal</td>
-                <td style="padding:8px; color:#10b981;">92 kg</td>
-                <td style="padding:8px;">%95</td>
-              </tr>
-            </tbody>
-          </table>
+        <h3>4. Damızlık Popülasyon & Takip Edilen Hatlar</h3>
+        <div id="pedigreeTableContainer">
+          <!-- pedigree.js buraya Sil butonlu dinamik tabloyu otomatik çizecek -->
         </div>
       </div>
 
