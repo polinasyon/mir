@@ -39,18 +39,15 @@ window.saveQueenFromForm = function () {
   const existingIndex = list.findIndex(q => q.id === id);
 
   if (existingIndex > -1) {
-    list[existingIndex] = queen; // Güncelle
+    list[existingIndex] = queen;
     alert('Ana arı güncellendi: ' + id);
   } else {
-    list.push(queen); // Yeni kayıt
+    list.push(queen);
     alert('Ana arı kaydedildi: ' + id);
   }
 
   saveQueens(list);
   window.renderPedigreeTable();
-
-  // Formu temizle (isteğe bağlı)
-  // document.getElementById('qId').value = '';
 };
 
 window.renderPedigreeTable = function () {
@@ -81,7 +78,7 @@ window.renderPedigreeTable = function () {
         <tbody>
   `;
 
-  list.forEach((q, index) => {
+  list.forEach(q => {
     html += `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
         <td style="padding:10px; color:#fff; font-weight:600;">${q.id}</td>
@@ -91,7 +88,8 @@ window.renderPedigreeTable = function () {
         <td style="padding:10px; color:#d1d5db;">${q.hircinlik}</td>
         <td style="padding:10px; color:#d1d5db;">${q.bal || '-'}</td>
         <td style="padding:10px; text-align:center;">
-          <button onclick="deleteQueen('${q.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">
+          <button onclick="deleteQueen('${q.id}')" 
+                  style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">
             Sil
           </button>
         </td>
@@ -99,14 +97,14 @@ window.renderPedigreeTable = function () {
     `;
   });
 
-  html += `
-        </tbody>
-      </table>
-    </div>
-  `;
-
+  html += `</tbody></table></div>`;
   container.innerHTML = html;
 };
 
 window.deleteQueen = function (id) {
-  if (!​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+  if (!confirm(id + ' numaralı ana arıyı silmek istediğinize emin misiniz?')) return;
+  const list = getQueens().filter(q => q.id !== id);
+  saveQueens(list);
+  window.renderPedigreeTable();
+  alert('Silindi: ' + id);
+};
