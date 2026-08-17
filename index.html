@@ -56,20 +56,25 @@
     .metric-item{background:rgba(0,0,0,0.2);padding:10px;border-radius:8px}
     .metric-label{font-size:12px;color:var(--muted)}
     .metric-value{font-size:16px;font-weight:bold;color:#fff}
+
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{padding:10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(245,158,11,0.15);color:#f59e0b}
+    td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.05);color:#d1d5db}
+    td:first-child{color:#fff;font-weight:600}
   </style>
 </head>
 <body>
 
   <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round" stroke="currentColor" fill="none"/></svg>
   </button>
 
-  <div class="overlay" id="overlay" role="dialog" aria-label="Ana Menü">
+  <div class="overlay" id="overlay">
     <div class="honey-bg"></div>
     <div class="menu" id="menu">
       <div class="menu-btn disabled-brand">
         <span class="label">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px"><path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/></svg>
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px"><path fill="#f59e0b" d="M12 3C11 3 9.8 3.7 9 4.7C8.2 5.7 8 6.9 8.2 7.9C7.4 8.4 6.7 9.1 6.2 9.9C5.2 10.7 4.9 11.9 5.4 12.9C5.9 14 6.8 14.7 8 14.9C8.2 15.6 8.7 16.2 9.4 16.5C10.1 16.9 10.9 17 11.6 16.8C12 17.6 12.8 18.2 13.8 18.3C15.1 18.5 16.2 17.9 17 16.9C17.8 15.9 18 14.6 17.6 13.5C18.3 13 18.8 12.2 18.8 11.3C18.8 10 17.9 9 16.7 8.8C16.2 8.1 15.6 7.5 14.8 7.2C14.9 6.6 14.9 5.8 14.6 5.2C14.3 4.5 13.7 4 13 3.7C12.5 3.5 12.2 3 12 3Z"/></svg>
           <span class="accent">Polinasyon</span>
         </span>
         <span style="font-size:12px; color:var(--muted)">v2.6</span>
@@ -117,7 +122,14 @@
         <h3>1. Ana Arı Kimlik & Soy Hatları</h3>
         <div class="form-grid">
           <div class="form-group"><label>Küpe / Numara</label><input type="text" id="qId" placeholder="Örn: TR-26-054"></div>
-          <div class="form-group"><label>Irk / Genetik Hat</label><select id="qIrk"><option>Karniyol</option><option>Kafkas</option><option>Anadolu</option><option>Belfast</option></select></div>
+          <div class="form-group"><label>Irk / Genetik Hat</label>
+            <select id="qIrk">
+              <option>Karniyol</option>
+              <option>Kafkas</option>
+              <option>Anadolu</option>
+              <option>Belfast</option>
+            </select>
+          </div>
           <div class="form-group"><label>Ana (Aba) Hattı Kodu</label><input type="text" id="qAba" placeholder="Örn: AN-24-012"></div>
           <div class="form-group"><label>Baba Hattı (Erkek Arı)</label><input type="text" id="qBaba" placeholder="Örn: DR-25-008"></div>
         </div>
@@ -137,20 +149,24 @@
               <option>Çok Hırçın (5/5)</option>
             </select>
           </div>
-          <div class="form-group"><label>Bal Verimi (Sezonluk Kg)</label><input type="text" id="qBal" placeholder="Örn: 85 kg / Sezon"></div>
+          <div class="form-group"><label>Bal Verimi (Sezonluk Kg)</label><input type="text" id="qBal" placeholder="Örn: 85 kg"></div>
           <div class="form-group"><label>VSH / Varroa Direnci (%)</label><input type="text" id="qVsh" placeholder="Örn: %92"></div>
           <div class="form-group">
             <label>Oğul Eğilimi</label>
-            <select id="qOgul"><option>Düşük</option><option>Orta</option><option>Yüksek</option></select>
+            <select id="qOgul">
+              <option>Düşük</option>
+              <option>Orta</option>
+              <option>Yüksek</option>
+            </select>
           </div>
         </div>
         
-        <button type="button" class="btn-primary" onclick="window.saveQueenFromForm()" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
+        <button type="button" class="btn-primary" id="saveBtn" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
           💾 Damızlık Ana Arıyı Kaydet / Güncelle
         </button>
       </div>
 
-      <!-- 3. Kamera & Analiz -->
+      <!-- 3. Kamera -->
       <div class="section-box">
         <h3>3. Morfometrik Kanat Analizi</h3>
         <div class="camera-box">
@@ -168,10 +184,12 @@
         </div>
       </div>
 
-      <!-- 4. Tablo -->
+      <!-- 4. Kayıtlar Tablosu -->
       <div class="section-box">
         <h3>4. Damızlık Popülasyon & Takip Edilen Hatlar</h3>
-        <div id="pedigreeTableContainer"></div>
+        <div id="pedigreeTableContainer">
+          <p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıt yok.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -179,13 +197,119 @@
   <div class="content-panel" id="healthPanel"><div class="panel-container"><h2>Sağlık</h2></div></div>
   <div class="content-panel" id="akademiPanel"><div class="panel-container"><h2>Akademi</h2></div></div>
 
-  <script src="pedigree.js"></script>
   <script>
-    // ==================== MENÜ YÖNETİMİ ====================
+    // ==================== VERİ YÖNETİMİ ====================
+    const STORAGE_KEY = 'polinasyon_queens';
+
+    function getQueens() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveQueens(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    function saveQueenFromForm() {
+      const id = document.getElementById('qId').value.trim();
+      if (!id) {
+        alert('Küpe / Numara zorunludur!');
+        return;
+      }
+
+      const queen = {
+        id: id,
+        irk: document.getElementById('qIrk').value,
+        aba: document.getElementById('qAba').value.trim(),
+        baba: document.getElementById('qBaba').value.trim(),
+        hircinlik: document.getElementById('qHircinlik').value,
+        bal: document.getElementById('qBal').value.trim(),
+        vsh: document.getElementById('qVsh').value.trim(),
+        ogul: document.getElementById('qOgul').value,
+        ci: document.getElementById('ciValue').textContent,
+        di: document.getElementById('diValue').textContent,
+        date: new Date().toLocaleString('tr-TR')
+      };
+
+      let list = getQueens();
+      const index = list.findIndex(q => q.id === id);
+
+      if (index > -1) {
+        list[index] = queen;
+        alert('Güncellendi: ' + id);
+      } else {
+        list.push(queen);
+        alert('Kaydedildi: ' + id);
+      }
+
+      saveQueens(list);
+      renderPedigreeTable();
+    }
+
+    function deleteQueen(id) {
+      if (!confirm(id + ' silinsin mi?')) return;
+      const list = getQueens().filter(q => q.id !== id);
+      saveQueens(list);
+      renderPedigreeTable();
+    }
+
+    function renderPedigreeTable() {
+      const container = document.getElementById('pedigreeTableContainer');
+      const list = getQueens();
+
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıt yok.</p>';
+        return;
+      }
+
+      let html = `
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Küpe</th>
+                <th>Irk</th>
+                <th>Aba</th>
+                <th>Baba</th>
+                <th>Hırçınlık</th>
+                <th>Bal</th>
+                <th style="text-align:center;">Sil</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      list.forEach(q => {
+        html += `
+          <tr>
+            <td>${q.id}</td>
+            <td>${q.irk}</td>
+            <td>${q.aba || '-'}</td>
+            <td>${q.baba || '-'}</td>
+            <td>${q.hircinlik}</td>
+            <td>${q.bal || '-'}</td>
+            <td style="text-align:center;">
+              <button onclick="deleteQueen('${q.id}')" 
+                      style="background:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;">
+                Sil
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div>`;
+      container.innerHTML = html;
+    }
+
+    // ==================== MENÜ ====================
     const overlay = document.getElementById('overlay');
-    const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
+    const menuBtns = document.querySelectorAll('.menu-btn[data-target]');
     const menuToggle = document.getElementById('menuToggle');
-    
+
     const panels = {
       nektar: document.getElementById('nektarPanel'),
       hive: document.getElementById('hivePanel'),
@@ -195,22 +319,17 @@
     };
 
     function closeAllPanels() {
-      Object.values(panels).forEach(panel => {
-        if (panel) panel.classList.remove('active');
-      });
+      Object.values(panels).forEach(p => p && p.classList.remove('active'));
     }
 
-    menuBtns.forEach((btn) => {
+    menuBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.target;
         overlay.classList.add('hidden');
         closeAllPanels();
-        
         if (panels[target]) {
           panels[target].classList.add('active');
-          if (target === 'pedigree' && typeof window.renderPedigreeTable === 'function') {
-            window.renderPedigreeTable();
-          }
+          if (target === 'pedigree') renderPedigreeTable();
         }
       });
     });
@@ -218,6 +337,9 @@
     menuToggle.addEventListener('click', () => {
       overlay.classList.toggle('hidden');
     });
+
+    // ==================== KAYDET BUTONU ====================
+    document.getElementById('saveBtn').addEventListener('click', saveQueenFromForm);
 
     // ==================== KAMERA ====================
     let stream = null;
@@ -228,9 +350,8 @@
     const placeholder = document.getElementById('camPlaceholder');
 
     startCamBtn.addEventListener('click', async () => {
-      // Eğer kamera açıksa kapat
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(t => t.stop());
         stream = null;
         video.srcObject = null;
         video.style.display = 'none';
@@ -240,7 +361,6 @@
         return;
       }
 
-      // Kamerayı aç
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' },
@@ -252,27 +372,22 @@
         captureBtn.disabled = false;
         startCamBtn.textContent = 'Kamerayı Kapat';
       } catch (err) {
-        console.error(err);
-        alert('Kamera açılamadı.\nİzin verdiğinizden ve HTTPS / localhost kullandığınızdan emin olun.');
+        alert('Kamera açılamadı. İzin verin ve HTTPS / localhost kullanın.');
       }
     });
 
     captureBtn.addEventListener('click', () => {
       if (!stream) return;
-
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
+      canvas.getContext('2d').drawImage(video, 0, 0);
 
-      // Örnek değerler (gerçek analiz daha sonra eklenebilir)
       const ci = (2.1 + Math.random() * 1.0).toFixed(2);
-      const di = (Math.random() > 0.4 ? 'Pozitif' : 'Negatif') + ` (+${(Math.random() * 2.5).toFixed(1)})`;
+      const di = (Math.random() > 0.4 ? 'Pozitif' : 'Negatif') + ` (+${(Math.random()*2.5).toFixed(1)})`;
 
       document.getElementById('ciValue').textContent = ci;
       document.getElementById('diValue').textContent = di;
-
-      alert(`Analiz tamamlandı!\nKübital İndeks: ${ci}\nDiskoidal Kayma: ${di}`);
+      alert(`Analiz tamamlandı!\nKübital: ${ci}\nDiskoidal: ${di}`);
     });
   </script>
 </body>
