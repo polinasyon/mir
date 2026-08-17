@@ -1,119 +1,112 @@
-// pedigree.js — Modül Çakışmasız Tam Çalışan Yapı
+// pedigree.js
 
-const STORAGE_KEY = 'polinasyon_pedigree_db';
+const STORAGE_KEY = 'polinasyon_queens';
 
-function getStoredQueens() {
+function getQueens() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-      {
-        id: "TR-26-054",
-        irk: "Karniyol",
-        anneHatti: "AN-24-012",
-        babaHatti: "DR-25-008",
-        hircinlik: "Çok Sakin (1/5)",
-        balVerimi: "85 kg / Sezon",
-        vshSkoru: "%92"
-      }
-    ];
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   } catch (e) {
     return [];
   }
 }
 
-window.renderPedigreeTable = function() {
+function saveQueens(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+window.saveQueenFromForm = function () {
+  const id = document.getElementById('qId')?.value?.trim();
+  if (!id) {
+    alert('Küpe / Numara zorunludur!');
+    return;
+  }
+
+  const queen = {
+    id: id,
+    irk: document.getElementById('qIrk')?.value || '',
+    aba: document.getElementById('qAba')?.value?.trim() || '',
+    baba: document.getElementById('qBaba')?.value?.trim() || '',
+    hircinlik: document.getElementById('qHircinlik')?.value || '',
+    bal: document.getElementById('qBal')?.value?.trim() || '',
+    vsh: document.getElementById('qVsh')?.value?.trim() || '',
+    ogul: document.getElementById('qOgul')?.value || '',
+    ci: document.getElementById('ciValue')?.textContent || '',
+    di: document.getElementById('diValue')?.textContent || '',
+    date: new Date().toLocaleString('tr-TR')
+  };
+
+  let list = getQueens();
+  const existingIndex = list.findIndex(q => q.id === id);
+
+  if (existingIndex > -1) {
+    list[existingIndex] = queen; // Güncelle
+    alert('Ana arı güncellendi: ' + id);
+  } else {
+    list.push(queen); // Yeni kayıt
+    alert('Ana arı kaydedildi: ' + id);
+  }
+
+  saveQueens(list);
+  window.renderPedigreeTable();
+
+  // Formu temizle (isteğe bağlı)
+  // document.getElementById('qId').value = '';
+};
+
+window.renderPedigreeTable = function () {
   const container = document.getElementById('pedigreeTableContainer');
   if (!container) return;
 
-  const queens = getStoredQueens();
+  const list = getQueens();
 
-  if (queens.length === 0) {
-    container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:15px;">Henüz kayıtlı damızlık yok.</p>`;
+  if (list.length === 0) {
+    container.innerHTML = '<p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıtlı damızlık ana arı yok.</p>';
     return;
   }
 
   let html = `
-    <div style="overflow-x:auto; margin-top:10px;">
-      <table style="width:100%; border-collapse:collapse; font-size:12px; color:#fff; text-align:left;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
         <thead>
-          <tr style="border-bottom:1px solid rgba(255,255,255,0.2); color:var(--amber);">
-            <th style="padding:8px;">Küpe</th>
-            <th style="padding:8px;">Irk</th>
-            <th style="padding:8px;">Aba (Ana)</th>
-            <th style="padding:8px;">Baba</th>
-            <th style="padding:8px;">Hırçınlık</th>
-            <th style="padding:8px;">Bal</th>
-            <th style="padding:8px;">VSH</th>
-            <th style="padding:8px; text-align:center;">İşlem</th>
+          <tr style="background:rgba(245,158,11,0.15); color:#f59e0b;">
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Küpe</th>
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Irk</th>
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Aba</th>
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Baba</th>
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Hırçınlık</th>
+            <th style="padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">Bal</th>
+            <th style="padding:10px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1);">İşlem</th>
           </tr>
         </thead>
         <tbody>
   `;
 
-  queens.forEach((q) => {
+  list.forEach((q, index) => {
     html += `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <td style="padding:8px; font-weight:bold; color:var(--amber);">${q.id}</td>
-        <td style="padding:8px;">${q.irk}</td>
-        <td style="padding:8px; color:#38bdf8;">${q.anneHatti || '-'}</td>
-        <td style="padding:8px; color:#f97316;">${q.babaHatti || '-'}</td>
-        <td style="padding:8px;">${q.hircinlik || '-'}</td>
-        <td style="padding:8px; color:#10b981;">${q.balVerimi || '-'}</td>
-        <td style="padding:8px;">${q.vshSkoru || '-'}</td>
-        <td style="padding:8px; text-align:center;">
-          <button type="button" onclick="window.deleteQueen('${q.id}')" style="background:#ef4444; border:none; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">Sil</button>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:10px; color:#fff; font-weight:600;">${q.id}</td>
+        <td style="padding:10px; color:#d1d5db;">${q.irk}</td>
+        <td style="padding:10px; color:#d1d5db;">${q.aba || '-'}</td>
+        <td style="padding:10px; color:#d1d5db;">${q.baba || '-'}</td>
+        <td style="padding:10px; color:#d1d5db;">${q.hircinlik}</td>
+        <td style="padding:10px; color:#d1d5db;">${q.bal || '-'}</td>
+        <td style="padding:10px; text-align:center;">
+          <button onclick="deleteQueen('${q.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">
+            Sil
+          </button>
         </td>
       </tr>
     `;
   });
 
-  html += `</tbody></table></div>`;
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
   container.innerHTML = html;
 };
 
-window.saveQueenFromForm = function() {
-  const idInput = document.getElementById('qId');
-  const id = idInput ? idInput.value.trim() : '';
-
-  if (!id) {
-    alert("Lütfen Küpe / Numara alanını doldurun!");
-    return;
-  }
-
-  const queens = getStoredQueens();
-  const newQueen = {
-    id: id,
-    irk: document.getElementById('qIrk')?.value || 'Karniyol',
-    anneHatti: document.getElementById('qAba')?.value.trim() || '',
-    babaHatti: document.getElementById('qBaba')?.value.trim() || '',
-    hircinlik: document.getElementById('qHircinlik')?.value || '',
-    balVerimi: document.getElementById('qBal')?.value.trim() || '',
-    vshSkoru: document.getElementById('qVsh')?.value.trim() || ''
-  };
-
-  const existingIndex = queens.findIndex(q => q.id === id);
-  if (existingIndex > -1) {
-    queens[existingIndex] = newQueen;
-  } else {
-    queens.push(newQueen);
-  }
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
-  window.renderPedigreeTable();
-  alert(`${id} başarıyla kaydedildi!`);
-};
-
-window.deleteQueen = function(id) {
-  if (confirm(`${id} numaralı kaydı silmek istediğinize emin misiniz?`)) {
-    let queens = getStoredQueens();
-    queens = queens.filter(q => q.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(queens));
-    window.renderPedigreeTable();
-  }
-};
-
-// Sayfa hazır olduğunda tabloyu hemen çiz
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => window.renderPedigreeTable());
-} else {
-  window.renderPedigreeTable();
-}
+window.deleteQueen = function (id) {
+  if (!​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
