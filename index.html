@@ -144,12 +144,11 @@
             <select id="qOgul"><option>Düşük</option><option>Orta</option><option>Yüksek</option></select>
           </div>
         </div>
-<!-- KAYDET BUTONU -->
-<button type="button" class="btn-primary" onclick="window.saveQueenFromForm()" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
-  💾 Damızlık Ana Arıyı Kaydet / Güncelle
-</button>
-
-         
+        
+        <!-- KAYDET BUTONU -->
+        <button type="button" class="btn-primary" onclick="window.saveQueenFromForm()" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
+          💾 Damızlık Ana Arıyı Kaydet / Güncelle
+        </button>
       </div>
 
       <!-- 3. Morfometrik Kanat Analizi -->
@@ -184,7 +183,9 @@
   <div class="content-panel" id="healthPanel"><div class="panel-container"><h2>Sağlık</h2></div></div>
   <div class="content-panel" id="akademiPanel"><div class="panel-container"><h2>Akademi</h2></div></div>
 
-  <script type="module">
+  <!-- SCRIPT YÖNETİMİ -->
+  <script src="pedigree.js"></script>
+  <script>
     const overlay = document.getElementById('overlay');
     const menuBtns = Array.from(document.querySelectorAll('.menu-btn[data-target]'));
     const menuToggle = document.getElementById('menuToggle');
@@ -197,35 +198,22 @@
       akademi: document.getElementById('akademiPanel')
     };
 
-    let activePedigreeModule = null;
-
     function closeAllPanels() {
       Object.values(panels).forEach(panel => {
         if (panel) panel.classList.remove('active');
       });
-      if (activePedigreeModule && typeof activePedigreeModule.stop === 'function') {
-        activePedigreeModule.stop();
-        activePedigreeModule = null;
-      }
     }
 
     menuBtns.forEach((btn) => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const target = btn.dataset.target;
         overlay.classList.add('hidden');
         closeAllPanels();
         
         if (panels[target]) {
           panels[target].classList.add('active');
-          if (target === 'pedigree') {
-            try {
-              const mod = await import('./pedigree.js');
-              if (mod && mod.initPedigreeModule) {
-                activePedigreeModule = mod.initPedigreeModule();
-              }
-            } catch (err) {
-              console.error("pedigree.js yüklenemedi:", err);
-            }
+          if (target === 'pedigree' && typeof window.renderPedigreeTable === 'function') {
+            window.renderPedigreeTable();
           }
         }
       });
@@ -235,9 +223,5 @@
       overlay.classList.toggle('hidden');
     });
   </script>
-  <script src="pedigree.js"></script>
-</body>
-</html>
-
 </body>
 </html>
