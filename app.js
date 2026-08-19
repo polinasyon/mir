@@ -1,6 +1,3 @@
-import { PedigreeModule } from './pedigree.js';
-import { NectarEngine } from './nektar.js';
-
 // Varsayılan / Başlangıç Nektar Akım Parametreleri (Simav)
 const currentSimavData = {
   name: "Kütahya / Simav (Ege Geçişi)",
@@ -29,14 +26,14 @@ class App {
       akademi: document.getElementById('akademiPanel')
     };
 
-    // Modüller
+    // Modüller (Global pencereden / window üzerinden alınır)
     this.modules = {
-      pedigree: new PedigreeModule()
+      pedigree: typeof PedigreeModule !== 'undefined' ? new PedigreeModule() : null
     };
   }
 
   init() {
-    // 1. Sayfa ilk yüklendiğinde Ana Kart üzerindeki Canlı Nektar Skorunu Hesapla (%98)
+    // 1. Sayfa ilk yüklendiğinde Nektar Akım Motorunu çalıştırır
     if (typeof NectarEngine !== 'undefined') {
       NectarEngine.renderDashboard(currentSimavData);
     }
@@ -109,7 +106,7 @@ class App {
       }
     });
 
-    // Kod ile dinamik yakalanabilecek diğer panelleri de gizle
+    // Dinamik olarak yakalanabilecek diğer tüm panelleri de gizle
     document.querySelectorAll('.content-panel').forEach((p) => {
       p.classList.remove('active');
       p.style.display = 'none';
