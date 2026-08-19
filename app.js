@@ -20,22 +20,28 @@ class App {
   }
 
   init() {
-    // Menü Buton Dinleyicileri
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.target;
-        this.openPanel(target);
-      });
+      const handleNav = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = e.currentTarget.dataset.target;
+        if (target) {
+          this.openPanel(target);
+        }
+      };
+
+      btn.addEventListener('click', handleNav);
     });
 
-    // Menü Aç/Kapat
     if (this.menuToggle) {
-      this.menuToggle.addEventListener('click', () => {
+      this.menuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         this.toggleOverlay();
       });
     }
 
-    // Overlay'e tıklandığında menüyü/panelleri kapatma
     if (this.overlay) {
       this.overlay.addEventListener('click', (e) => {
         if (e.target === this.overlay) {
@@ -44,47 +50,11 @@ class App {
       });
     }
 
-    // ESC tuşu desteği
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        this.closeAllPanels();
-        this.closeOverlay();
-      }
-    });
-
-    // Alt modülleri güvenli bir şekilde başlat
-    this.initModules();
-  }
-
-  initModules() {
     try {
-      if (this.modules.pedigree && typeof this.modules.pedigree.init === 'function') {
-        this.modules.pedigree.init();
-      }
-    } catch (error) {
-      console.error('PedigreeModule başlatılırken hata oluştu:', error);
+      this.modules.pedigree.init();
+    } catch (err) {
+      console.error('Pedigree Module başlatma hatası:', err);
     }
-  }
-
-  openPanel(target) {
-    this.closeOverlay();
-    this.closeAllPanels();
-
-    if (this.panels[target]) {
-      this.panels[target].classList.add('active');
-
-      if (target === 'pedigree' && this.modules.pedigree) {
-        this.modules.pedigree.renderTable();
-      }
-    } else {
-      console.warn(`Panel bulunamadı: ${target}`);
-    }
-  }
-
-  closeAllPanels() {
-    Object.values(this.panels).forEach((panel) => {
-      if (panel) panel.classList.remove('active');
-    });
   }
 
   toggleOverlay() {
@@ -98,9 +68,29 @@ class App {
       this.overlay.classList.add('hidden');
     }
   }
+
+  openPanel(target) {
+    this.closeOverlay();
+    this.closeAllPanels();
+
+    if (this.panels[target]) {
+      this.panels[target].classList.add('active');
+
+      if (target === 'pedigree') {
+        this.modules.pedigree.renderTable();
+      }
+    }
+  }
+
+  closeAllPanels() {
+    Object.values(this.panels).forEach((panel) => {
+      if (panel) panel.classList.remove('active');
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
   app.init();
 });
+
