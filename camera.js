@@ -1,6 +1,6 @@
 /**
  * Kamera Yönetimi, Piksel Kontrast Kontrolü ve 3 Nokta Nirengi Servisi
- * İyileştirilmiş Diskoidal Çıkarımı
+ * İyileştirilmiş Diskoidal Çıkarımı + resetPoints eklendi
  */
 export class CameraService {
   constructor(videoElement, canvasElement, placeholderElement) {
@@ -50,6 +50,20 @@ export class CameraService {
       this.placeholder.style.display = 'block';
     }
     this.points = [];
+    this.capturedImageData = null;
+  }
+
+  // ★★★ EKLENEN METOD ★★★
+  resetPoints() {
+    this.points = [];
+    this.capturedImageData = null;
+    if (this.ctx && this.canvas) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    this.canvas.style.display = 'none';
+    if (this.stream) {
+      this.video.style.display = 'block';
+    }
   }
 
   captureAndValidate() {
@@ -74,7 +88,8 @@ export class CameraService {
 
     const contrastScore = totalVariance / pixelCount;
 
-    if (contrastScore < 6.5) {
+    // Eşik biraz düşürüldü (eski 6.5 → 5.0) – daha toleranslı
+    if (contrastScore < 5.0) {
       return {
         valid: false,
         reason: '⚠️ Görüntüde kanat damarı/dokusu tespit edilemedi. Lütfen net bir kanat fotoğrafı çekin.'
@@ -140,9 +155,6 @@ export class CameraService {
     this.ctx.stroke();
   }
 
-  /**
-   * İyileştirilmiş CI + Diskoidal Hesabı
-   */
   calculateMetrics() {
     const [pA, pB, pC] = this.points;
 
@@ -153,24 +165,18 @@ export class CameraService {
 
     const ci = (distAB / distBC).toFixed(2);
 
-    // Daha iyi Diskoidal tahmini:
-    // 1. Yatay fark (ana kriter)
-    // 2. Dikey fark ve açı bilgisini de dikkate al
     const deltaX = pC.x - pB.x;
     const deltaY = pC.y - pB.y;
-    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
 
-    // Açı ve yön birleşik karar
     let rawDiscoidal;
     if (Math.abs(deltaX) < 8) {
-      rawDiscoidal = 'nötr';           // neredeyse dikey
+      rawDiscoidal = 'nötr';
     } else if (deltaX > 0) {
       rawDiscoidal = 'pozitif';
     } else {
       rawDiscoidal = 'negatif';
     }
 
-    // Görsel için okunabilir değer
     const diVal = (Math.abs(deltaX) / 10).toFixed(1);
     const di = `${rawDiscoidal.charAt(0).toUpperCase() + rawDiscoidal.slice(1)} (±${diVal})`;
 
