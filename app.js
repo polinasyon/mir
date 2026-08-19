@@ -1,6 +1,4 @@
 import { PedigreeModule } from './pedigree.js';
-import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
@@ -16,33 +14,13 @@ class App {
       akademi: document.getElementById('akademiPanel')
     };
 
-    this.modules = {};
+    this.modules = {
+      pedigree: new PedigreeModule()
+    };
   }
 
   init() {
-    // 1. Modülleri güvenli bir şekilde başlat (Hata verse bile app çökmez)
-    try {
-      this.modules.pedigree = new PedigreeModule();
-      this.modules.pedigree.init();
-    } catch (err) {
-      console.error('Pedigree modül hatası:', err);
-    }
-
-    try {
-      this.modules.breeding = new BreedingModule();
-      this.modules.breeding.init();
-    } catch (err) {
-      console.error('Breeding modül hatası:', err);
-    }
-
-    try {
-      this.modules.nektar = new NektarModule();
-      this.modules.nektar.init();
-    } catch (err) {
-      console.error('Nektar modül hatası:', err);
-    }
-
-    // 2. Menü buton tıklama dinleyicileri
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         if (e.cancelable) e.preventDefault();
@@ -52,15 +30,19 @@ class App {
           this.openPanel(target);
         }
       };
+
       btn.addEventListener('click', handleNav);
+      btn.addEventListener('touchend', handleNav);
     });
 
     if (this.menuToggle) {
-      this.menuToggle.addEventListener('click', (e) => {
+      const handleToggle = (e) => {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         this.toggleOverlay();
-      });
+      };
+      this.menuToggle.addEventListener('click', handleToggle);
+      this.menuToggle.addEventListener('touchend', handleToggle);
     }
 
     if (this.overlay) {
@@ -70,17 +52,26 @@ class App {
         }
       });
     }
+
+    try {
+      this.modules.pedigree.init();
+    } catch (err) {
+      console.error('Pedigree Module başlatma hatası:', err);
+    }
   }
 
   toggleOverlay() {
     if (this.overlay) {
       this.overlay.classList.toggle('hidden');
+      // Overlay açıldığında z-index çakışmalarını önlemek için pointer-events ayarı
+      this.overlay.style.pointerEvents = this.overlay.classList.contains('hidden') ? 'none' : 'auto';
     }
   }
 
   closeOverlay() {
     if (this.overlay) {
       this.overlay.classList.add('hidden');
+      this.overlay.style.pointerEvents = 'none';
     }
   }
 
@@ -91,10 +82,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      if (target === 'health') {
-        if (this.modules.breeding && typeof this.modules.breeding.renderTable === 'function') {
-          this.modules.breeding.renderTable();
-        }
+      if (target === 'pedigree') {
+        this.modules.pedigree.renderTable();
       }
     }
   }
