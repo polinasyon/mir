@@ -17,17 +17,17 @@ class App {
     };
 
     this.modules = {
-      pedigree: new PedigreeModule(),
-      breeding: new BreedingModule(),
-      nektar: new NektarModule()
+      pedigree: null,
+      breeding: null,
+      nektar: null
     };
   }
 
   init() {
-    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
+    // 1. Menü butonlarını hata ihtimaline karşı garanti altına al
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         const target = e.currentTarget.dataset.target;
         if (target) {
@@ -36,14 +36,17 @@ class App {
       };
 
       btn.addEventListener('click', handleNav);
+      btn.addEventListener('touchend', handleNav);
     });
 
     if (this.menuToggle) {
-      this.menuToggle.addEventListener('click', (e) => {
-        e.preventDefault();
+      const handleToggle = (e) => {
+        if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         this.toggleOverlay();
-      });
+      };
+      this.menuToggle.addEventListener('click', handleToggle);
+      this.menuToggle.addEventListener('touchend', handleToggle);
     }
 
     if (this.overlay) {
@@ -54,23 +57,26 @@ class App {
       });
     }
 
-    // Modülleri güvenle başlat
+    // 2. Modülleri birbirinden bağımsız ve güvenli şekilde başlat (Biri patlasa bile diğerleri ve menü çalışır)
     try {
+      this.modules.pedigree = new PedigreeModule();
       this.modules.pedigree.init();
     } catch (err) {
-      console.error('Pedigree Module başlatma hatası:', err);
+      console.warn('Pedigree modül yüklenemedi:', err);
     }
 
     try {
+      this.modules.breeding = new BreedingModule();
       this.modules.breeding.init();
     } catch (err) {
-      console.error('Breeding Module başlatma hatası:', err);
+      console.warn('Breeding modül yüklenemedi:', err);
     }
 
     try {
+      this.modules.nektar = new NektarModule();
       this.modules.nektar.init();
     } catch (err) {
-      console.error('Nektar Module başlatma hatası:', err);
+      console.warn('Nektar modül yüklenemedi:', err);
     }
   }
 
@@ -93,9 +99,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      // Eğer damızlık / islah paneli açıldıysa tabloyu güncelle
-      if (target === 'health') {
-        if (this.modules.breeding && typeof this.modules.breeding.renderTable === 'function') {
+      if (target === 'health' && this.modules.breeding) {
+        if (typeof this.modules.breeding.renderTable === 'function') {
           this.modules.breeding.renderTable();
         }
       }
