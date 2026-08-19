@@ -28,8 +28,12 @@ window.NektarModule = class {
   }
 
   loadDefaultLocation() {
-    this.calculateGDDAndNectar(24, 45, 12, "Hafif Esinti", "Yok", 20);
-    this.renderFloraTimeline();
+    try {
+      this.calculateGDDAndNectar(24, 45, 12, "Hafif Esinti", "Yok", 20);
+      this.renderFloraTimeline();
+    } catch (e) {
+      console.warn("Nektar yükleme uyarısı:", e);
+    }
   }
 
   calculateGDDAndNectar(temp, humidity, dewPoint, wind, rain, cloud) {
