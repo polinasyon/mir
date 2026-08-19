@@ -1,12 +1,11 @@
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
     this.overlay = document.getElementById('overlay');
     this.menuToggle = document.getElementById('menuToggle');
-    this.menuBtns = document.querySelectorAll('.menu-btn');
+    this.menuBtns = document.querySelectorAll('.menu-btn[data-target]');
     
     this.panels = {
       nektar: document.getElementById('nektarPanel'),
@@ -18,35 +17,31 @@ class App {
 
     this.modules = {
       pedigree: new PedigreeModule(),
-      breeding: new BreedingModule(),
-      nektar: new NektarModule()
+      breeding: new BreedingModule()
     };
   }
 
   init() {
-    // Menü butonları için tıklama ve dokunma olaylarını garantiye al
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
-      const target = btn.dataset.target;
-      if (!target) return; // 'disabled-brand' gibi hedefini olmayanları atla
-
       const handleNav = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        this.openPanel(target);
+        const target = e.currentTarget.dataset.target;
+        if (target) {
+          this.openPanel(target);
+        }
       };
 
       btn.addEventListener('click', handleNav);
-      btn.addEventListener('touchend', handleNav);
     });
 
     if (this.menuToggle) {
-      const toggleMenu = (e) => {
+      this.menuToggle.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.toggleOverlay();
-      };
-      this.menuToggle.addEventListener('click', toggleMenu);
-      this.menuToggle.addEventListener('touchend', toggleMenu);
+      });
     }
 
     if (this.overlay) {
@@ -57,23 +52,16 @@ class App {
       });
     }
 
-    // Modülleri güvenle başlat
     try {
       this.modules.pedigree.init();
     } catch (err) {
-      console.error('Pedigree modül hatası:', err);
+      console.error('Pedigree Module başlatma hatası:', err);
     }
 
     try {
       this.modules.breeding.init();
     } catch (err) {
-      console.error('Breeding modül hatası:', err);
-    }
-
-    try {
-      this.modules.nektar.init();
-    } catch (err) {
-      console.error('Nektar modül hatası:', err);
+      console.error('Breeding Module başlatma hatası:', err);
     }
   }
 
