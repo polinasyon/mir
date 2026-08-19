@@ -1,4 +1,5 @@
 import { PedigreeModule } from './pedigree.js';
+import { BreedingModule } from './breeding.js';
 
 class App {
   constructor() {
@@ -15,7 +16,8 @@ class App {
     };
 
     this.modules = {
-      pedigree: new PedigreeModule()
+      pedigree: new PedigreeModule(),
+      breeding: new BreedingModule() // Damızlık modülü eklendi
     };
   }
 
@@ -52,8 +54,9 @@ class App {
 
     try {
       this.modules.pedigree.init();
+      this.modules.breeding.init(); // Damızlık modülü başlatılıyor
     } catch (err) {
-      console.error('Pedigree Module başlatma hatası:', err);
+      console.error('Modül başlatma hatası:', err);
     }
   }
 
@@ -76,8 +79,9 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      if (target === 'pedigree') {
-        this.modules.pedigree.renderTable();
+      // Damızlık paneli açıldığında tabloyu güncelle
+      if (target === 'health') {
+        this.modules.breeding.renderTable();
       }
     }
   }
