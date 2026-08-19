@@ -33,14 +33,14 @@ class App {
 
     // Modül Örnekleri
     this.modules = {
-      pedigree: typeof PedigreeModule !== 'undefined' ? new PedigreeModule() : null,
-      camera: typeof CameraModule !== 'undefined' ? new CameraModule() : null
+      pedigree: typeof PedigreeModule === 'function' ? new PedigreeModule() : null,
+      camera: typeof CameraModule === 'function' ? new CameraModule() : null
     };
   }
 
   init() {
     // 1. Sayfa ilk yüklendiğinde Ana Kart üzerindeki Canlı Nektar Skorunu Hesapla
-    if (typeof NectarEngine !== 'undefined') {
+    if (NectarEngine && typeof NectarEngine.renderDashboard === 'function') {
       NectarEngine.renderDashboard(currentSimavData);
     }
 
@@ -94,7 +94,7 @@ class App {
       // --- PANEL ÖZEL İŞLEMLERİ ---
 
       // A) Nektar Akımı Paneli Açıldıysa
-      if (target === 'nektar' && typeof NectarEngine !== 'undefined') {
+      if (target === 'nektar' && NectarEngine) {
         NectarEngine.renderDashboard(currentSimavData);
       }
 
@@ -115,7 +115,7 @@ class App {
   }
 
   closeAllPanels() {
-    // Eğer kamera açıksa arkaplanda çalışmaya devam etmesin
+    // Kamera açıksa arkaplanda çalışmaya devam etmesin
     if (this.modules.camera && typeof this.modules.camera.stopStream === 'function') {
       this.modules.camera.stopStream();
     }
