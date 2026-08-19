@@ -50,10 +50,12 @@ export class CameraService {
     const ctx = this.canvas.getContext('2d');
     ctx.drawImage(this.video, 0, 0);
 
-    const ci = (2.1 + Math.random() * 1.0).toFixed(2);
+    // Morfometrik Piksel Analiz Simülasyonu (Rutner Standartlarına Uygun)
+    const ci = (1.6 + Math.random() * 1.5).toFixed(2);
+    const isPositive = Math.random() > 0.4;
     const diVal = (Math.random() * 2.5).toFixed(1);
-    const di = (Math.random() > 0.4 ? 'Pozitif' : 'Negatif') + ` (+${diVal})`;
+    const di = (isPositive ? 'Pozitif' : 'Negatif') + ` (+${diVal})`;
 
-    return { ci, di };
+    return { ci, di, rawDiscoidal: isPositive ? 'Pozitif' : 'Negatif' };
   }
 }
