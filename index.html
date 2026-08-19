@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Polinasyon — Çevrimdışı Arıcılık & Islah Yönetimi</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Tailwind CSS CDN (Eğer projenizde harici yüklü değilse) -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen pb-28" style="background:var(--dark-1); color:#fff;">
@@ -52,15 +52,13 @@
     </div>
   </div>
 
-  <!-- NEKTAR AKIM PANELİ (GDD ve Flora Hesaplamaları) -->
+  <!-- 1. NEKTAR AKIM PANELİ -->
   <div class="content-panel active" id="nektarPanel">
     <div class="panel-container">
       <div class="soft-card p-6 sm:p-8" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-800 pb-4">
           <div class="flex items-center gap-2.5 overflow-hidden">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-              📍
-            </div>
+            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">📍</div>
             <div class="overflow-hidden">
               <h2 id="havaLokasyon" class="text-base sm:text-lg font-bold text-white tracking-tight truncate">Ankara</h2>
               <p id="bolgeFloraHaritasi" class="text-[11px] text-amber-400 font-semibold truncate">Flora: Bölge Analizi Aktif</p>
@@ -68,8 +66,7 @@
           </div>
         </div>
 
-        <!-- Hava Durumu Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 text-slate-800">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">SICAKLIK</p>
             <p id="havaSicaklik" class="text-2xl font-bold text-amber-400 mt-1">--°C</p>
@@ -96,7 +93,6 @@
           </div>
         </div>
 
-        <!-- Nektar Skor Kartı -->
         <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 mb-6">
           <div class="flex justify-between items-end mb-3">
             <div>
@@ -123,7 +119,6 @@
           <p id="nektarAciklama" class="text-sm text-slate-400">Meteorolojik veriler ve GDD modelleri işleniyor...</p>
         </div>
 
-        <!-- Flora Takvimi -->
         <div class="border border-slate-800 bg-slate-900/60 rounded-2xl p-5 space-y-4">
           <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2">📅 Bölgesel Flora Takvimi</h3>
           <div id="floraTimelineContainer" class="space-y-2.5"></div>
@@ -132,10 +127,125 @@
     </div>
   </div>
 
-  <div class="content-panel" id="hivePanel"><div class="panel-container"><h2>Kovan Kayıt</h2></div></div>
-  <div class="content-panel" id="pedigreePanel"><div class="panel-container"><h2>Morfometrik Kanat Analizi</h2></div></div>
-  <div class="content-panel" id="healthPanel"><div class="panel-container"><h2>Damızlık Islah ve Kayıt Paneli</h2></div></div>
-  <div class="content-panel" id="akademiPanel"><div class="panel-container"><h2>Akademi</h2></div></div>
+  <div class="content-panel" id="hivePanel">
+    <div class="panel-container"><h2>Kovan Kayıt</h2></div>
+  </div>
+
+  <!-- 2. MORFOMETRİ (PEDIGREE) PANELİ -->
+  <div class="content-panel" id="pedigreePanel">
+    <div class="panel-container">
+      <h2>Morfometrik Kanat Analizi</h2>
+      <p style="color:var(--muted); margin-top:-10px;">Kamera ile kubital indeks ve diskoidal kayma ölçümü.</p>
+
+      <div class="section-box">
+        <h3>3. Morfometrik Analiz (Kovan Örneklemi)</h3>
+        
+        <div class="camera-box">
+          <div class="camera-placeholder" id="camPlaceholder">Kamera Kapalı</div>
+          <video id="videoElement" autoplay playsinline style="display:none;"></video>
+          <canvas id="canvasElement" style="display:none;"></canvas>
+        </div>
+        
+        <div class="action-row">
+          <button type="button" class="btn-secondary" id="startCamBtn">Kamerayı Aç</button>
+          <button type="button" class="btn-primary" id="captureBtn" disabled>Fotoğraf Çek</button>
+        </div>
+        
+        <div class="metric-grid">
+          <div class="metric-item"><div class="metric-label">Kübital İndeks</div><div class="metric-value" id="ciValue">-</div></div>
+          <div class="metric-item"><div class="metric-label">Diskoidal Kayma</div><div class="metric-value" id="diValue">-</div></div>
+        </div>
+
+        <div style="margin-top:15px; padding:12px; background:var(--bg); border-radius:6px; border:1px solid #374151;">
+          <label style="font-size:13px; color:var(--muted); display:block; margin-bottom:8px;">(İsteğe Bağlı) A4 Açısı İçin Damar Ölçümleri (mm)</label>
+          <div style="display:flex; gap:10px;">
+            <input type="number" id="a4DistA" placeholder="A Uzunluğu" step="0.01" style="width:50%;">
+            <input type="number" id="a4DistB" placeholder="B Uzunluğu" step="0.01" style="width:50%;">
+          </div>
+        </div>
+
+        <div style="margin-top:15px;">
+          <button type="button" class="btn-secondary" id="addSampleBtn" style="width:100%; margin-bottom:10px; border-color:#38bdf8 !important; color:#38bdf8 !important;" disabled>
+            ➕ Arıyı Örnekleme Ekle
+          </button>
+          
+          <ul id="sampleList" style="list-style:none; padding:0; margin:0 0 10px 0; font-size:13px; max-height:140px; overflow-y:auto; border:1px solid #374151; border-radius:6px; background:#111827;">
+            <li id="emptyListText" style="padding:12px; text-align:center; color:#9ca3af;">Henüz ölçüm eklenmedi. (Hedef: 10-15 Arı)</li>
+          </ul>
+
+          <button type="button" class="btn-primary" id="analyzeColonyBtn" disabled style="width:100%; background-color:#10b981 !important; opacity:0.5; cursor:not-allowed;">
+            📊 Kovan Ortalamasını Analiz Et
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. DAMIZLIK & ISLAH (HEALTH) PANELİ -->
+  <div class="content-panel" id="healthPanel">
+    <div class="panel-container">
+      <h2>Damızlık Islah ve Kayıt Paneli</h2>
+      <p style="color:var(--muted); margin-top:-10px;">Ana arı kayıtları, aba hattı, baba hattı, hırçınlık ve bal verimi yönetimi.</p>
+      
+      <div class="section-box">
+        <h3>1. Ana Arı Kimlik & Soy Hatları</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Küpe / Numara</label><input type="text" id="qId" placeholder="Örn: TR-26-054"></div>
+          <div class="form-group"><label>Irk / Genetik Hat</label>
+            <select id="qIrk">
+              <option>Karniyol</option>
+              <option>Kafkas</option>
+              <option>Anadolu</option>
+              <option>Belfast</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Ana (Aba) Hattı Kodu</label><input type="text" id="qAba" placeholder="Örn: AN-24-012"></div>
+          <div class="form-group"><label>Baba Hattı (Erkek Arı)</label><input type="text" id="qBaba" placeholder="Örn: DR-25-008"></div>
+        </div>
+      </div>
+
+      <div class="section-box">
+        <h3>2. Performans, Hırçınlık & Bal Verimi</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Hırçınlık / Uysallık</label>
+            <select id="qHircinlik">
+              <option>Çok Sakin (1/5)</option>
+              <option>Uysal (2/5)</option>
+              <option>Orta (3/5)</option>
+              <option>Hırçın (4/5)</option>
+              <option>Çok Hırçın (5/5)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Bal Verimi (Sezonluk Kg)</label><input type="text" id="qBal" placeholder="Örn: 85 kg"></div>
+          <div class="form-group"><label>VSH / Varroa Direnci (%)</label><input type="text" id="qVsh" placeholder="Örn: %92"></div>
+          <div class="form-group">
+            <label>Oğul Eğilimi</label>
+            <select id="qOgul">
+              <option>Düşük</option>
+              <option>Orta</option>
+              <option>Yüksek</option>
+            </select>
+          </div>
+        </div>
+        
+        <button type="button" class="btn-primary" id="saveBtn" style="margin-top:15px; width:100%; padding:14px; font-size:14px;">
+          💾 Damızlık Ana Arıyı Kaydet / Güncelle
+        </button>
+      </div>
+
+      <div class="section-box">
+        <h3>4. Damızlık Popülasyon & Takip Edilen Hatlar</h3>
+        <div id="pedigreeTableContainer">
+          <p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıt yok.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-panel" id="akademiPanel">
+    <div class="panel-container"><h2>Akademi</h2></div>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>
