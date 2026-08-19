@@ -1,5 +1,6 @@
 /**
- * Kamera Yönetimi, Piksel Kontrast Kontrolü ve 3 Nokta Nirengi (Landmark) Servisi
+ * Kamera Yönetimi, Piksel Kontrast Kontrolü ve 3 Nokta Nirengi Servisi
+ * İyileştirilmiş Diskoidal Çıkarımı
  */
 export class CameraService {
   constructor(videoElement, canvasElement, placeholderElement) {
@@ -8,7 +9,7 @@ export class CameraService {
     this.ctx = canvasElement.getContext('2d');
     this.placeholder = placeholderElement;
     this.stream = null;
-    this.points = []; // Kullanıcının tıkladığı A, B, C noktaları
+    this.points = [];
     this.capturedImageData = null;
   }
 
@@ -51,9 +52,6 @@ export class CameraService {
     this.points = [];
   }
 
-  /**
-   * 1. AŞAMA: Otomatik Piksel ve Kontrast Tespiti (Görüntü Doğrulama)
-   */
   captureAndValidate() {
     if (!this.stream) return { valid: false, reason: 'Kamera kapalı.' };
 
@@ -64,11 +62,10 @@ export class CameraService {
     const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
     const data = imgData.data;
 
-    // Laplacian / Variance Kontrast Taraması (Kenar Yoğunluğu Hesabı)
     let totalVariance = 0;
     let pixelCount = 0;
 
-    for (let i = 0; i < data.length; i += 16) { // Hızlı piksel örnekleme
+    for (let i = 0; i < data.length; i += 16) {
       const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
       const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
       totalVariance += Math.abs(avg - nextAvg);
@@ -77,7 +74,6 @@ export class CameraService {
 
     const contrastScore = totalVariance / pixelCount;
 
-    // Düz tavan/duvarlarda kontrast skoru çok düşük çıkar (örn < 6)
     if (contrastScore < 6.5) {
       return {
         valid: false,
@@ -85,7 +81,6 @@ export class CameraService {
       };
     }
 
-    // Doğrulama başarılı ise görseli canvas üzerinde dondur
     this.capturedImageData = imgData;
     this.video.style.display = 'none';
     this.canvas.style.display = 'block';
@@ -94,9 +89,6 @@ export class CameraService {
     return { valid: true };
   }
 
-  /**
-   * 2. AŞAMA: Manuel Nirengi Tıklama Yönetimi
-   */
   addPoint(x, y) {
     if (this.points.length >= 3) return null;
 
@@ -118,7 +110,6 @@ export class CameraService {
     const colors = ['#ef4444', '#3b82f6', '#10b981'];
 
     this.points.forEach((pt, index) => {
-      // Nokta Çizimi
       this.ctx.beginPath();
       this.ctx.arc(pt.x, pt.y, 6, 0, 2 * Math.PI);
       this.ctx.fillStyle = colors[index];
@@ -127,13 +118,11 @@ export class CameraService {
       this.ctx.strokeStyle = '#ffffff';
       this.ctx.stroke();
 
-      // Etiket Yazısı
       this.ctx.font = 'bold 14px sans-serif';
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillText(` ${labels[index]}`, pt.x + 8, pt.y - 8);
     });
 
-    // Çizgi Çizimi (A-B ve B-C damar mesafeleri)
     if (this.points.length >= 2) {
       this.drawLine(this.points[0], this.points[1], '#ef4444');
     }
@@ -152,25 +141,43 @@ export class CameraService {
   }
 
   /**
-   * Öklid Mesafesi ile Kübital İndeks (CI) Hesabı
+   * İyileştirilmiş CI + Diskoidal Hesabı
    */
   calculateMetrics() {
     const [pA, pB, pC] = this.points;
 
-    // A-B Mesafesi (a damarı)
     const distAB = Math.hypot(pB.x - pA.x, pB.y - pA.y);
-    // B-C Mesafesi (b damarı)
     const distBC = Math.hypot(pC.x - pB.x, pC.y - pB.y);
 
     if (distBC === 0) return null;
 
     const ci = (distAB / distBC).toFixed(2);
-    
-    // Açısal Yerleşimden Diskoidal Kayma Çıkarımı
-    const isPositive = pC.x > pB.x; 
-    const diVal = (Math.abs(pC.x - pB.x) / 10).toFixed(1);
-    const di = (isPositive ? 'Pozitif' : 'Negatif') + ` (+${diVal})`;
 
-    return { ci, di, rawDiscoidal: isPositive ? 'Pozitif' : 'Negatif' };
+    // Daha iyi Diskoidal tahmini:
+    // 1. Yatay fark (ana kriter)
+    // 2. Dikey fark ve açı bilgisini de dikkate al
+    const deltaX = pC.x - pB.x;
+    const deltaY = pC.y - pB.y;
+    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+    // Açı ve yön birleşik karar
+    let rawDiscoidal;
+    if (Math.abs(deltaX) < 8) {
+      rawDiscoidal = 'nötr';           // neredeyse dikey
+    } else if (deltaX > 0) {
+      rawDiscoidal = 'pozitif';
+    } else {
+      rawDiscoidal = 'negatif';
+    }
+
+    // Görsel için okunabilir değer
+    const diVal = (Math.abs(deltaX) / 10).toFixed(1);
+    const di = `${rawDiscoidal.charAt(0).toUpperCase() + rawDiscoidal.slice(1)} (±${diVal})`;
+
+    return {
+      ci,
+      di,
+      rawDiscoidal
+    };
   }
 }
