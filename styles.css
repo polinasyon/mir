@@ -52,7 +52,7 @@ body {
   visibility: visible;
 }
 
-/* OPERA TIKLAMA FIX: hidden durumunda katmanı tamamen DOM akışından kaldırır */
+/* Gizlendiğinde DOM akışını ve tıklamaları tamamen kapatır */
 .overlay.hidden { 
   opacity: 0 !important; 
   visibility: hidden !important; 
@@ -106,10 +106,11 @@ body {
   animation: livePulse 2.5s infinite ease-in-out;
   transition: border-color 0.2s;
   user-select: none;
+  pointer-events: auto; /* Normal modda tıklamayı garanti eder */
 }
 
 .menu-btn * {
-  pointer-events: none; /* İçteki ikon/yazılar tıklamayı engellemesin */
+  pointer-events: none; /* İçindeki yazılar/ikonlar tıklamayı engellemez */
 }
 
 .menu-btn:hover { border-color: rgba(245, 158, 11, 0.8); }
