@@ -1,6 +1,6 @@
-import { NektarModule } from './nektar.js';
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
+import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
@@ -17,14 +17,14 @@ class App {
     };
 
     this.modules = {
-      nektar: new NektarModule(),
       pedigree: new PedigreeModule(),
-      breeding: new BreedingModule()
+      breeding: new BreedingModule(),
+      nektar: new NektarModule()
     };
   }
 
   init() {
-    // Opera ve Mobil uyumlu menü buton dinleyicileri
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         e.preventDefault();
@@ -54,11 +54,10 @@ class App {
       });
     }
 
-    // Modülleri başlat
     try {
-      this.modules.nektar.init();
       this.modules.pedigree.init();
       this.modules.breeding.init();
+      this.modules.nektar.init();
     } catch (err) {
       console.error('Modül başlatma hatası:', err);
     }
@@ -83,11 +82,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      // Eğer damızlık / sağlık paneli açıldıysa kayıt tablosunu tazele
       if (target === 'health') {
-        if (typeof this.modules.breeding.renderTable === 'function') {
-          this.modules.breeding.renderTable();
-        }
+        this.modules.breeding.renderTable();
       }
     }
   }
