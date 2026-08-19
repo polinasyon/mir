@@ -13,18 +13,17 @@ export class PedigreeModule {
   }
 
   init() {
-  this.bindDOM();
-  this.initCamera();
-  this.bindEvents();
-  this.renderTable();
+    this.bindDOM();
+    this.initCamera();
+    this.bindEvents();
+    this.renderTable();
 
-  // ★★★ Bu kısmı ekleyin ★★★
-  if (this.elements.addSampleBtn) {
-    this.elements.addSampleBtn.disabled = true;
-    this.elements.addSampleBtn.style.opacity = '0.5';
-    this.elements.addSampleBtn.style.cursor = 'not-allowed';
+    if (this.elements.addSampleBtn) {
+      this.elements.addSampleBtn.disabled = true;
+      this.elements.addSampleBtn.style.opacity = '0.5';
+      this.elements.addSampleBtn.style.cursor = 'not-allowed';
+    }
   }
-}
 
   bindDOM() {
     this.elements = {
@@ -100,40 +99,37 @@ export class PedigreeModule {
         return;
       }
 
-     const validation = this.camera.captureAndValidate();
-if (!validation.valid) {
-  alert(validation.reason);
-  return;
-}
+      const validation = this.camera.captureAndValidate();
+      if (!validation.valid) {
+        alert(validation.reason);
+        return;
+      }
 
-this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
-this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
+      this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
+      this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
 
-// ★★★ Yeni: Otomatik tespit başarılıysa
-if (validation.autoDetected && validation.metrics) {
-  this.currentMetrics = validation.metrics;
-  this.elements.ciValue.textContent = validation.metrics.ci;
-  this.elements.diValue.textContent = validation.metrics.di;
+      if (validation.autoDetected && validation.metrics) {
+        this.currentMetrics = validation.metrics;
+        this.elements.ciValue.textContent = validation.metrics.ci;
+        this.elements.diValue.textContent = validation.metrics.di;
 
-  if (this.elements.addSampleBtn) {
-    this.elements.addSampleBtn.disabled = false;
-    this.elements.addSampleBtn.style.opacity = '1';
-    this.elements.addSampleBtn.style.cursor = 'pointer';
-  }
+        if (this.elements.addSampleBtn) {
+          this.elements.addSampleBtn.disabled = false;
+          this.elements.addSampleBtn.style.opacity = '1';
+          this.elements.addSampleBtn.style.cursor = 'pointer';
+        }
+      } else {
+        alert(
+          '✅ Kanat Dokusu Algılandı!\n\n' +
+          'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
+          '1. Nokta: A Noktası (Ana Damar Başı)\n' +
+          '2. Nokta: B Noktası (Kübital Kesişim)\n' +
+          '3. Nokta: C Noktası (Alt Damar Bitişi)'
+        );
+      }
+    });
 
-  // İsteğe bağlı kısa bilgilendirme (istersen tamamen kaldırabilirsin)
-  // alert('✅ Otomatik damar noktaları tespit edildi!');
-} else {
-  // Eski manuel akış
-  alert(
-    '✅ Kanat Dokusu Algılandı!\n\n' +
-    'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
-    '1. Nokta: A Noktası (Ana Damar Başı)\n' +
-    '2. Nokta: B Noktası (Kübital Kesişim)\n' +
-    '3. Nokta: C Noktası (Alt Damar Bitişi)'
-  );
-}
-
+    // Canvas tıklama (nokta seçme)
     let isProcessing = false;
     const handleCanvasInteraction = (e) => {
       if (e.cancelable) e.preventDefault();
@@ -173,6 +169,7 @@ if (validation.autoDetected && validation.metrics) {
       this.elements.canvasElement.addEventListener('click', handleCanvasInteraction);
     }
 
+    // Arıyı Örnekleme Ekle
     if (this.elements.addSampleBtn) {
       this.elements.addSampleBtn.addEventListener('click', () => {
         if (!this.currentMetrics) return;
@@ -213,6 +210,7 @@ if (validation.autoDetected && validation.metrics) {
       });
     }
 
+    // Kovan Analiz
     if (this.elements.analyzeColonyBtn) {
       this.elements.analyzeColonyBtn.addEventListener('click', () => {
         if (this.colonySamples.length === 0) return;
