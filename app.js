@@ -1,6 +1,4 @@
 import { PedigreeModule } from './pedigree.js';
-import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
@@ -17,13 +15,12 @@ class App {
     };
 
     this.modules = {
-      pedigree: new PedigreeModule(),
-      breeding: new BreedingModule(),
-      nektar: new NektarModule()
+      pedigree: new PedigreeModule()
     };
   }
 
   init() {
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         e.preventDefault();
@@ -33,6 +30,7 @@ class App {
           this.openPanel(target);
         }
       };
+
       btn.addEventListener('click', handleNav);
     });
 
@@ -52,23 +50,10 @@ class App {
       });
     }
 
-    // Modülleri bağımsız ve güvenli şekilde başlat
     try {
       this.modules.pedigree.init();
     } catch (err) {
-      console.error('Pedigree modül hatası:', err);
-    }
-
-    try {
-      this.modules.breeding.init();
-    } catch (err) {
-      console.error('Breeding modül hatası:', err);
-    }
-
-    try {
-      this.modules.nektar.init();
-    } catch (err) {
-      console.error('Nektar modül hatası:', err);
+      console.error('Pedigree Module başlatma hatası:', err);
     }
   }
 
@@ -91,10 +76,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      if (target === 'health') {
-        if (this.modules.breeding && typeof this.modules.breeding.renderTable === 'function') {
-          this.modules.breeding.renderTable();
-        }
+      if (target === 'pedigree') {
+        this.modules.pedigree.renderTable();
       }
     }
   }
