@@ -23,7 +23,7 @@ class App {
     // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
-        if (e.cancelable) e.preventDefault();
+        e.preventDefault();
         e.stopPropagation();
         const target = e.currentTarget.dataset.target;
         if (target) {
@@ -32,17 +32,14 @@ class App {
       };
 
       btn.addEventListener('click', handleNav);
-      btn.addEventListener('touchend', handleNav);
     });
 
     if (this.menuToggle) {
-      const handleToggle = (e) => {
-        if (e.cancelable) e.preventDefault();
+      this.menuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         this.toggleOverlay();
-      };
-      this.menuToggle.addEventListener('click', handleToggle);
-      this.menuToggle.addEventListener('touchend', handleToggle);
+      });
     }
 
     if (this.overlay) {
@@ -63,15 +60,12 @@ class App {
   toggleOverlay() {
     if (this.overlay) {
       this.overlay.classList.toggle('hidden');
-      // Overlay açıldığında z-index çakışmalarını önlemek için pointer-events ayarı
-      this.overlay.style.pointerEvents = this.overlay.classList.contains('hidden') ? 'none' : 'auto';
     }
   }
 
   closeOverlay() {
     if (this.overlay) {
       this.overlay.classList.add('hidden');
-      this.overlay.style.pointerEvents = 'none';
     }
   }
 
