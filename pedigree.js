@@ -7,7 +7,6 @@ export class PedigreeModule {
     this.storage = new StorageService('polinasyon_queens');
     this.camera = null;
     this.lastAIResult = null;
-    this.elements = {};
   }
 
   init() {
@@ -40,98 +39,74 @@ export class PedigreeModule {
   }
 
   initCamera() {
-    if (this.elements.videoElement && this.elements.canvasElement) {
-      this.camera = new CameraService(
-        this.elements.videoElement,
-        this.elements.canvasElement,
-        this.elements.camPlaceholder
-      );
-    }
+    this.camera = new CameraService(
+      this.elements.videoElement,
+      this.elements.canvasElement,
+      this.elements.camPlaceholder
+    );
   }
 
   bindEvents() {
-    // 1. Kaydet Butonu
-    if (this.elements.saveBtn) {
-      this.elements.saveBtn.addEventListener('click', () => this.handleSave());
-    }
+    this.elements.saveBtn.addEventListener('click', () => this.handleSave());
 
-    // 2. Kamera Aç / Kapat Butonu
-    if (this.elements.startCamBtn && this.camera) {
-      this.elements.startCamBtn.addEventListener('click', async () => {
-        const active = await this.camera.toggle();
-        this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
-        if (this.elements.captureBtn) {
-          this.elements.captureBtn.disabled = !active;
-        }
-      });
-    }
+    this.elements.startCamBtn.addEventListener('click', async () => {
+      const active = await this.camera.toggle();
+      this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
+      this.elements.captureBtn.disabled = !active;
+    });
 
-    // 3. Görsel Dondurma ve Kontrast Tespiti (1. AŞAMA)
-    if (this.elements.captureBtn && this.camera) {
-      this.elements.captureBtn.addEventListener('click', () => {
-        // Yeni çekimde noktaları sıfırla (varsa camera.resetPoints fonksiyonu)
-        if (typeof this.camera.resetPoints === 'function') {
-          this.camera.resetPoints();
-        }
+    // 1. AŞAMA: Görsel Dondurma ve Kontrast Tespiti
+    this.elements.captureBtn.addEventListener('click', () => {
+      const validation = this.camera.captureAndValidate();
 
-        const validation = this.camera.captureAndValidate();
+      if (!validation.valid) {
+        alert(validation.reason);
+        return;
+      }
 
-        if (!validation.valid) {
-          alert(validation.reason || 'Görsel doğrulanamadı.');
-          return;
-        }
+      alert(
+        '✅ Kanat Dokusu Algılandı!\n\n' +
+        'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
+        '1. Nokta: A Noktası (Ana Damar Başı)\n' +
+        '2. Nokta: B Noktası (Kübital Kesişim)\n' +
+        '3. Nokta: C Noktası (Alt Damar Bitişi)'
+      );
+    });
+
+    // 2. AŞAMA: Canvas Üzerinde Dokunarak Nirengi (Point) Seçimi
+    this.elements.canvasElement.addEventListener('click', (e) => {
+      const rect = this.elements.canvasElement.getBoundingClientRect();
+      const scaleX = this.elements.canvasElement.width / rect.width;
+      const scaleY = this.elements.canvasElement.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      const metrics = this.camera.addPoint(x, y);
+
+      if (metrics) {
+        this.elements.ciValue.textContent = metrics.ci;
+        this.elements.diValue.textContent = metrics.di;
+
+        // Rutner AI Analizini Gerçek Ölçüm Değerleriyle Çalıştır
+        const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
+        this.lastAIResult = aiResult;
 
         alert(
-          '✅ Kanat Dokusu Algılandı!\n\n' +
-          'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
-          '1. Nokta: A Noktası (Ana Damar Başı)\n' +
-          '2. Nokta: B Noktası (Kübital Kesişim)\n' +
-          '3. Nokta: C Noktası (Alt Damar Bitişi)'
+          `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
+          `------------------------------------\n` +
+          `Hesaplanan CI: ${metrics.ci}\n` +
+          `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
+          `AI Güven Skoru: %${aiResult.confidence}\n` +
+          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}`
         );
-      });
-    }
+      }
+    });
 
-    // 4. Canvas Üzerinde Dokunarak Nirengi (Point) Seçimi (2. AŞAMA)
-    if (this.elements.canvasElement && this.camera) {
-      this.elements.canvasElement.addEventListener('click', (e) => {
-        const rect = this.elements.canvasElement.getBoundingClientRect();
-        const scaleX = this.elements.canvasElement.width / rect.width;
-        const scaleY = this.elements.canvasElement.height / rect.height;
-
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-
-        const metrics = this.camera.addPoint(x, y);
-
-        if (metrics) {
-          if (this.elements.ciValue) this.elements.ciValue.textContent = metrics.ci;
-          if (this.elements.diValue) this.elements.diValue.textContent = metrics.di;
-
-          // Rutner AI Analizini Gerçek Ölçüm Değerleriyle Çalıştır
-          if (typeof RutnerAIEngine !== 'undefined' && typeof RutnerAIEngine.analyzeRace === 'function') {
-            const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
-            this.lastAIResult = aiResult;
-
-            alert(
-              `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
-              `------------------------------------\n` +
-              `Hesaplanan CI: ${metrics.ci}\n` +
-              `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
-              `AI Güven Skoru: %${aiResult.confidence}\n` +
-              `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}`
-            );
-          }
-        }
-      });
-    }
-
-    // Global Silme Fonksiyonunu Bağla
     window.deleteQueen = (id) => this.handleDelete(id);
   }
 
   handleSave() {
-    if (!this.elements.qId) return;
-
     const id = this.elements.qId.value.trim();
     if (!id) {
       alert('Küpe / Numara zorunludur!');
@@ -140,15 +115,15 @@ export class PedigreeModule {
 
     const queen = {
       id: id,
-      irk: this.elements.qIrk ? this.elements.qIrk.value : '-',
-      aba: this.elements.qAba ? this.elements.qAba.value.trim() : '',
-      baba: this.elements.qBaba ? this.elements.qBaba.value.trim() : '',
-      hircinlik: this.elements.qHircinlik ? this.elements.qHircinlik.value : '1',
-      bal: this.elements.qBal ? this.elements.qBal.value.trim() : '',
-      vsh: this.elements.qVsh ? this.elements.qVsh.value.trim() : '',
-      ogul: this.elements.qOgul ? this.elements.qOgul.value : '0',
-      ci: this.elements.ciValue ? this.elements.ciValue.textContent : '-',
-      di: this.elements.diValue ? this.elements.diValue.textContent : '-',
+      irk: this.elements.qIrk.value,
+      aba: this.elements.qAba.value.trim(),
+      baba: this.elements.qBaba.value.trim(),
+      hircinlik: this.elements.qHircinlik.value,
+      bal: this.elements.qBal.value.trim(),
+      vsh: this.elements.qVsh.value.trim(),
+      ogul: this.elements.qOgul.value,
+      ci: this.elements.ciValue.textContent,
+      di: this.elements.diValue.textContent,
       aiRace: this.lastAIResult ? this.lastAIResult.predictedRace : 'Analiz Yapılmadı',
       date: new Date().toLocaleString('tr-TR')
     };
@@ -165,11 +140,9 @@ export class PedigreeModule {
   }
 
   renderTable() {
-    if (!this.elements.tableContainer) return;
-
     const list = this.storage.getAll();
 
-    if (!list || list.length === 0) {
+    if (list.length === 0) {
       this.elements.tableContainer.innerHTML =
         '<p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıt yok.</p>';
       return;
