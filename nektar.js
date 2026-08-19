@@ -1,6 +1,10 @@
-window.NektarModule = class {
+import { floraVeritabani } from './floraveritabani.js';
+import { bolgeHaritasi } from './bolgeharitasi.js';
+
+export class NektarModule {
   constructor() {
     this.currentLocation = "Ankara";
+    this.weatherData = null;
   }
 
   init() {
@@ -32,7 +36,7 @@ window.NektarModule = class {
       this.calculateGDDAndNectar(24, 45, 12, "Hafif Esinti", "Yok", 20);
       this.renderFloraTimeline();
     } catch (e) {
-      console.warn("Nektar yükleme uyarısı:", e);
+      console.warn("Nektar yükleme hatası:", e);
     }
   }
 
@@ -65,26 +69,38 @@ window.NektarModule = class {
   renderFloraTimeline() {
     if (!this.elements.floraTimelineContainer) return;
     
-    const floralar = [
-      { ad: "Akasya", donem: "Mayıs - Haziran", durum: "Güçlü Nektar", renk: "emerald" },
-      { ad: "Kestane", donem: "Haziran - Temmuz", durum: "Polen / Orta Akım", renk: "amber" },
-      { ad: "Çam / Pırnar", donem: "Ağustos - Eylül", durum: "Salgı Nejatı", renk: "slate" }
-    ];
+    // Flora veritabanından güvenli veri çekme
+    let floralar = [];
+    try {
+      if (typeof floraVeritabani !== 'undefined' && typeof floraVeritabani.getListesi === 'function') {
+        florar = floraVeritabani.getListesi();
+      }
+    } catch (err) {
+      console.warn("Flora listesi alınamadı, varsayılanlar kullanılıyor.", err);
+    }
+
+    if (!florar || florar.length === 0) {
+      florar = [
+        { ad: "Akasya", donem: "Mayıs - Haziran", durum: "Güçlü Nektar" },
+        { ad: "Kestane", donem: "Haziran - Temmuz", durum: "Polen / Orta Akım" },
+        { ad: "Çam / Pırnar", donem: "Ağustos - Eylül", durum: "Salgı Nejatı" }
+      ];
+    }
 
     let html = "";
     florar.forEach(f => {
       html += `
         <div class="flex items-center justify-between p-2.5 bg-slate-800 border border-slate-700 rounded-xl">
           <div>
-            <p class="text-xs font-bold text-white">${f.ad}</p>
-            <p class="text-[10px] text-slate-400">${f.donem}</p>
+            <p class="text-xs font-bold text-white">${f.ad || f.isim || 'Flora'}</p>
+            <p class="text-[10px] text-slate-400">${f.donem || ''}</p>
           </div>
-          <span class="text-[10px] font-bold px-2 py-1 rounded bg-amber-500/20 text-amber-400">${f.durum}</span>
+          <span class="text-[10px] font-bold px-2 py-1 rounded bg-amber-500/20 text-amber-400">${f.durum || 'Aktif'}</span>
         </div>
       `;
     });
 
     this.elements.floraTimelineContainer.innerHTML = html;
   }
-};
+}
 
