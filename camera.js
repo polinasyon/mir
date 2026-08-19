@@ -5,7 +5,7 @@ export class CameraService {
   constructor(videoElement, canvasElement, placeholderElement) {
     this.video = videoElement;
     this.canvas = canvasElement;
-    this.ctx = canvasElement ? canvasElement.getContext('2d') : null;
+    this.ctx = canvasElement.getContext('2d');
     this.placeholder = placeholderElement;
     this.stream = null;
     this.points = []; // Kullanıcının tıkladığı A, B, C noktaları
@@ -27,18 +27,14 @@ export class CameraService {
         video: { facingMode: 'environment' },
         audio: false
       });
-
-      if (this.video) {
-        this.video.srcObject = this.stream;
-        this.video.style.display = 'block';
-      }
-      if (this.placeholder) this.placeholder.style.display = 'none';
-      if (this.canvas) this.canvas.style.display = 'none';
-
+      this.video.srcObject = this.stream;
+      this.video.style.display = 'block';
+      this.placeholder.style.display = 'none';
+      this.canvas.style.display = 'none';
       return true;
     } catch (error) {
       console.error('Kamera erişim hatası:', error);
-      alert('Kamera açılamadı. Lütfen kamera izinlerini kontrol edin.');
+      alert('Kamera açılamadı. İzinleri kontrol edin.');
       return false;
     }
   }
@@ -47,43 +43,20 @@ export class CameraService {
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
-    }
-    if (this.video) {
       this.video.srcObject = null;
       this.video.style.display = 'none';
+      this.canvas.style.display = 'none';
+      this.placeholder.style.display = 'block';
     }
-    if (this.canvas) this.canvas.style.display = 'none';
-    if (this.placeholder) this.placeholder.style.display = 'block';
-
-    this.resetPoints();
-  }
-
-  // App.js veya dış modüllerin rahatça çağırabilmesi için
-  stopStream() {
-    this.stop();
-  }
-
-  // Yeni fotoğraf çekildiğinde veya iptal edildiğinde noktaları sıfırlar
-  resetPoints() {
     this.points = [];
-    if (this.capturedImageData && this.ctx) {
-      this.ctx.putImageData(this.capturedImageData, 0, 0);
-    }
   }
 
   /**
    * 1. AŞAMA: Otomatik Piksel ve Kontrast Tespiti (Görüntü Doğrulama)
    */
   captureAndValidate() {
-    if (!this.stream || !this.video) {
-      return { valid: false, reason: '⚠️ Kamera kapalı veya hazır değil.' };
-    }
+    if (!this.stream) return { valid: false, reason: 'Kamera kapalı.' };
 
-    if (!this.canvas || !this.ctx) {
-      return { valid: false, reason: '⚠️ Canvas elementi bulunamadı.' };
-    }
-
-    // Canvas boyutlarını video kaynak çözünürlüğüne eşitle
     this.canvas.width = this.video.videoWidth || 640;
     this.canvas.height = this.video.videoHeight || 480;
     this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
@@ -104,7 +77,7 @@ export class CameraService {
 
     const contrastScore = totalVariance / pixelCount;
 
-    // Düz zemin/odak dışı görsellerde kontrast skoru düşük çıkar
+    // Düz tavan/duvarlarda kontrast skoru çok düşük çıkar (örn < 6)
     if (contrastScore < 6.5) {
       return {
         valid: false,
@@ -137,8 +110,6 @@ export class CameraService {
   }
 
   redrawCanvas() {
-    if (!this.ctx) return;
-
     if (this.capturedImageData) {
       this.ctx.putImageData(this.capturedImageData, 0, 0);
     }
@@ -172,7 +143,6 @@ export class CameraService {
   }
 
   drawLine(pt1, pt2, color) {
-    if (!this.ctx) return;
     this.ctx.beginPath();
     this.ctx.moveTo(pt1.x, pt1.y);
     this.ctx.lineTo(pt2.x, pt2.y);
