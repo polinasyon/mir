@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Polinasyon — Çevrimdışı Arıcılık & Islah Yönetimi</title>
-<link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
@@ -108,11 +108,11 @@
           💾 Damızlık Ana Arıyı Kaydet / Güncelle
         </button>
       </div>
-      <!-- 3. Kamera & Morfometri (Çoklu Örneklem) -->
+
+      <!-- 3. Kamera & Morfometri -->
       <div class="section-box">
         <h3>3. Morfometrik Analiz (Kovan Örneklemi)</h3>
         
-        <!-- Kamera Ekranı -->
         <div class="camera-box">
           <div class="camera-placeholder" id="camPlaceholder">Kamera Kapalı</div>
           <video id="videoElement" autoplay playsinline style="display:none;"></video>
@@ -129,7 +129,6 @@
           <div class="metric-item"><div class="metric-label">Diskoidal Kayma</div><div class="metric-value" id="diValue">-</div></div>
         </div>
 
-        <!-- A4 Ham Veri (Milimetre) Girişi -->
         <div style="margin-top:15px; padding:12px; background:var(--bg); border-radius:6px; border:1px solid #374151;">
           <label style="font-size:13px; color:var(--muted); display:block; margin-bottom:8px;">(İsteğe Bağlı) A4 Açısı İçin Damar Ölçümleri (mm)</label>
           <div style="display:flex; gap:10px;">
@@ -137,9 +136,9 @@
             <input type="number" id="a4DistB" placeholder="B Uzunluğu" step="0.01" style="width:50%;">
           </div>
         </div>
-        <!-- Örneklem Listesi ve Analiz Butonları -->
+
         <div style="margin-top:15px;">
-          <button type="button" class="btn-secondary" id="addSampleBtn" style="width:100%; margin-bottom:10px; border-color:#38bdf8 !important; color:#38bdf8 !important;">
+          <button type="button" class="btn-secondary" id="addSampleBtn" style="width:100%; margin-bottom:10px; border-color:#38bdf8 !important; color:#38bdf8 !important;" disabled>
             ➕ Arıyı Örnekleme Ekle
           </button>
           
@@ -151,7 +150,7 @@
             📊 Kovan Ortalamasını Analiz Et
           </button>
         </div>
-
+      </div>
 
       <!-- 4. Kayıtlar Tablosu -->
       <div class="section-box">
@@ -163,13 +162,14 @@
     </div>
   </div>
 
+  <div class="content-panel" id="healthPanel">
+    <div class="panel-container"><h2>Kovan Sağlığı / Varroa</h2></div>
+  </div>
+
   <div class="content-panel" id="akademiPanel">
     <div class="panel-container"><h2>Akademi</h2></div>
   </div>
 
-  <!-- JS MODÜLÜ BURADA VE "app.js" OLARAK OLMALI -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
-
