@@ -1,4 +1,5 @@
 import { PedigreeModule } from './pedigree.js';
+import { BreedingModule } from './breeding.js';
 
 class App {
   constructor() {
@@ -10,12 +11,13 @@ class App {
       nektar: document.getElementById('nektarPanel'),
       hive: document.getElementById('hivePanel'),
       pedigree: document.getElementById('pedigreePanel'),
-      health: document.getElementById('healthPanel'),
+      health: document.getElementById('healthPanel'), // Damızlık tablosunun olduğu panel
       akademi: document.getElementById('akademiPanel')
     };
 
     this.modules = {
-      pedigree: new PedigreeModule()
+      pedigree: new PedigreeModule(),
+      breeding: new BreedingModule() // Damızlık / Islah modülü eklendi
     };
   }
 
@@ -50,10 +52,12 @@ class App {
       });
     }
 
+    // Modülleri başlat
     try {
       this.modules.pedigree.init();
+      this.modules.breeding.init(); // Damızlık modülü başlatılıyor
     } catch (err) {
-      console.error('Pedigree Module başlatma hatası:', err);
+      console.error('Modül başlatma hatası:', err);
     }
   }
 
@@ -76,8 +80,11 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      if (target === 'pedigree') {
-        this.modules.pedigree.renderTable();
+      // Eğer damızlık/sağlık paneli açıldıysa kayıt tablosunu tazele
+      if (target === 'health' || target === 'pedigree') {
+        if (typeof this.modules.breeding.renderTable === 'function') {
+          this.modules.breeding.renderTable();
+        }
       }
     }
   }
