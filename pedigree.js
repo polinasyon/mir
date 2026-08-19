@@ -100,23 +100,39 @@ export class PedigreeModule {
         return;
       }
 
-      const validation = this.camera.captureAndValidate();
-      if (!validation.valid) {
-        alert(validation.reason);
-        return;
-      }
+     const validation = this.camera.captureAndValidate();
+if (!validation.valid) {
+  alert(validation.reason);
+  return;
+}
 
-      this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
-      this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
+this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
+this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
 
-      alert(
-        '✅ Kanat Dokusu Algılandı!\n\n' +
-        'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
-        '1. Nokta: A Noktası (Ana Damar Başı)\n' +
-        '2. Nokta: B Noktası (Kübital Kesişim)\n' +
-        '3. Nokta: C Noktası (Alt Damar Bitişi)'
-      );
-    });
+// ★★★ Yeni: Otomatik tespit başarılıysa
+if (validation.autoDetected && validation.metrics) {
+  this.currentMetrics = validation.metrics;
+  this.elements.ciValue.textContent = validation.metrics.ci;
+  this.elements.diValue.textContent = validation.metrics.di;
+
+  if (this.elements.addSampleBtn) {
+    this.elements.addSampleBtn.disabled = false;
+    this.elements.addSampleBtn.style.opacity = '1';
+    this.elements.addSampleBtn.style.cursor = 'pointer';
+  }
+
+  // İsteğe bağlı kısa bilgilendirme (istersen tamamen kaldırabilirsin)
+  // alert('✅ Otomatik damar noktaları tespit edildi!');
+} else {
+  // Eski manuel akış
+  alert(
+    '✅ Kanat Dokusu Algılandı!\n\n' +
+    'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
+    '1. Nokta: A Noktası (Ana Damar Başı)\n' +
+    '2. Nokta: B Noktası (Kübital Kesişim)\n' +
+    '3. Nokta: C Noktası (Alt Damar Bitişi)'
+  );
+}
 
     let isProcessing = false;
     const handleCanvasInteraction = (e) => {
