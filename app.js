@@ -1,6 +1,6 @@
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
+
 
 class App {
   constructor() {
