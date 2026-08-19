@@ -1,18 +1,10 @@
 /**
  * Friedrich Ruttner & Türkiye Arıcılık Araştırmaları Morfometrik Standartları
- * AI Irk & Ekotip Tanılama Motoru - v2.1 (GitHub Ready)
- *
- * Düzeltmeler:
- * - Diskoidal eşleşme tamamen yeniden yazıldı (büyük/küçük harf duyarsız + doğru Nötr mantığı)
- * - Girdi doğrulama eklendi
- * - Referans CI aralıkları Ruttner 1988 + Türkiye çalışmalarına göre güncellendi
- * - Eşit skor durumunda daha iyi aday seçimi
- * - Test senaryoları eklendi
- * - Daha temiz ve genişletilebilir yapı
+ * AI Irk & Ekotip Tanılama Motoru - Bilimsel v2.2
  */
 
 export const RUTNER_DATABASE = {
-  // Uluslararası Irklar (Ruttner 1988 ortalamalarına daha yakın)
+  // Uluslararası Bilimsel Irklar
   Carnica: {
     name: 'Karniyol (A. m. carnica)',
     ciMin: 2.20, ciMax: 3.10,
@@ -20,6 +12,14 @@ export const RUTNER_DATABASE = {
     a4Angle: 30.5,
     pilosity: 0.30,
     color: '#38bdf8'
+  },
+  Carpatica: {
+    name: 'Karpat (A. m. carpatica)',
+    ciMin: 2.40, ciMax: 2.95,
+    discoidal: 'pozitif',
+    a4Angle: 30.8,
+    pilosity: 0.31,
+    color: '#0ea5e9'
   },
   Caucasica: {
     name: 'Kafkas (A. m. caucasica)',
@@ -91,26 +91,114 @@ export const RUTNER_DATABASE = {
 
 export class RutnerAIEngine {
   /**
-   * Çok parametreli ırk/ekotip tanılama
-   * @param {number|string} ci - Kübital İndeks
-   * @param {string} discoidal - "pozitif" | "negatif" | "nötr" (büyük/küçük harf duyarsız)
-   * @param {number|null} [a4Angle=null] - A4 damar açısı (derece)
-   * @param {number|null} [pilosity=null] - Tüy uzunluğu (mm)
-   * @returns {object}
+   * Çok Parametreli AI Irk ve Ekotip Tanılama
+   * @param {number} ci - Kübital İndeks
+   * @param {string} discoidal - Diskoidal Kayma ("pozitif", "negatif", "nötr")
+   * @param {number} [a4Angle] - A4 Damar Açısı (Opsiyonel)
+   * @param {number} [pilosity] - Tüy Uzunluğu mm (Opsiyonel)
    */
   static analyzeRace(ci, discoidal, a4Angle = null, pilosity = null) {
-    // --- Girdi Doğrulama ---
     const ciNum = parseFloat(ci);
+
+    // Girdi doğrulama
     if (isNaN(ciNum) || ciNum < 1.0 || ciNum > 4.5) {
       return {
-        error: true,
-        message: 'Geçersiz Kübital İndeks değeri. 1.0 - 4.5 arasında olmalıdır.',
-        predictedRace: null,
+        predictedRace: 'Geçersiz CI değeri',
         confidence: 0,
         isHybrid: true,
-        candidates: []
+        candidates: [],
+        error: true,
+        message: 'Kübital İndeks 1.0 - 4.5 arasında olmalıdır.'
       };
     }
 
-    const disc = (discoidal || '').toString().toLowerCase().trim();
-    if (!['pozitif', 'negatif', 'nötr', 'notr', 'neutral​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+    const discRaw = (discoidal || '').toString().toLowerCase().trim();
+    let normalizedDisc = discRaw;
+    if (['pozitif', 'positive', '+'].includes(discRaw)) normalizedDisc = 'pozitif';
+    else if (['negatif', 'negative', '-'].includes(discRaw)) normalizedDisc = 'negatif';
+    else if (['nötr', 'notr', 'neutral', '0'].includes(discRaw)) normalizedDisc = 'nötr';
+    else {
+      return {
+        predictedRace: 'Geçersiz Diskoidal değeri',
+        confidence: 0,
+        isHybrid: true,
+        candidates: [],
+        error: true,
+        message: 'Diskoidal değeri "pozitif", "negatif" veya "nötr" olmalıdır.'
+      };
+    }
+
+    let bestMatch = null;
+    let highestScore = -1;
+    const candidates = [];
+
+    Object.keys(RUTNER_DATABASE).forEach((key) => {
+      const race = RUTNER_DATABASE[key];
+      let score = 0;
+
+      // 1. Kübital İndeks (%50)
+      if (ciNum >= race.ciMin && ciNum <= race.ciMax) {
+        score += 50;
+      } else {
+        const diff = Math.min(Math.abs(ciNum - race.ciMin), Math.abs(ciNum - race.ciMax));
+        if (diff <= 0.12) score += 35;
+        else if (diff <= 0.25) score += 20;
+        else if (diff <= 0.40) score += 8;
+      }
+
+      // 2. Diskoidal Kayma (%30)
+      if (race.discoidal === 'nötr') {
+        score += (normalizedDisc === 'nötr') ? 30 : 18;
+      } else if (race.discoidal === normalizedDisc) {
+        score += 30;
+      } else if (normalizedDisc === 'nötr') {
+        score += 12;
+      }
+
+      // 3. A4 Açısı (%10)
+      if (a4Angle !== null && !isNaN(parseFloat(a4Angle))) {
+        const angleDiff = Math.abs(parseFloat(a4Angle) - race.a4Angle);
+        if (angleDiff <= 2.0) score += 10;
+        else if (angleDiff <= 4.0) score += 6;
+        else if (angleDiff <= 6.5) score += 3;
+      } else {
+        score += 5;
+      }
+
+      // 4. Tüy Uzunluğu (%10)
+      if (pilosity !== null && !isNaN(parseFloat(pilosity))) {
+        const pilDiff = Math.abs(parseFloat(pilosity) - race.pilosity);
+        if (pilDiff <= 0.04) score += 10;
+        else if (pilDiff <= 0.08) score += 6;
+        else if (pilDiff <= 0.12) score += 3;
+      } else {
+        score += 5;
+      }
+
+      candidates.push({
+        key,
+        name: race.name,
+        score: Math.round(score * 10) / 10,
+        color: race.color
+      });
+
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = race;
+      }
+    });
+
+    candidates.sort((a, b) => b.score - a.score);
+
+    const confidence = Math.round(highestScore * 10) / 10;
+    const isHybrid = confidence < 68 || (candidates.length > 1 && (candidates[0].score - candidates[1].score) < 12);
+
+    return {
+      predictedRace: bestMatch ? bestMatch.name : 'Belirsiz / Genetik Sapma',
+      confidence,
+      isHybrid,
+      candidates,
+      error: false
+    };
+  }
+}
