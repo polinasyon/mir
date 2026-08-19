@@ -1,6 +1,6 @@
 /**
  * Friedrich Ruttner & Türkiye Arıcılık Araştırmaları Morfometrik Standartları
- * AI Irk & Ekotip Tanılama Motoru - Bilimsel v2.3
+ * AI Irk & Ekotip Tanılama Motoru - Bilimsel v2.4 (Koloni Destekli)
  */
 
 export const RUTNER_DATABASE = {
@@ -87,6 +87,72 @@ export const RUTNER_DATABASE = {
 };
 
 export class RutnerAIEngine {
+
+  /**
+   * YENİ: A4 açısını milimetrik damar uzunluklarından dereceye dönüştürür.
+   * Kullanım: calculateA4FromDistances(a_uzunlugu, b_uzunlugu)
+   */
+  static calculateA4FromDistances(distA, distB) {
+    if (!distA || !distB || distB === 0) return null;
+    const angleRadian = Math.atan(distA / distB);
+    return parseFloat((angleRadian * (180 / Math.PI)).toFixed(2));
+  }
+
+  /**
+   * YENİ: Kovandan alınan çoklu işçi arı örnekleminin ortalamasını hesaplar.
+   * @param {Array} samples - Örneklem dizisi: [{ci: 2.4, discoidal: 'pozitif', a4Angle: 31.5}, ...]
+   */
+  static analyzeColony(samples) {
+    if (!Array.isArray(samples) || samples.length === 0) {
+      return { error: true, message: 'Örneklem dizisi boş olamaz.' };
+    }
+
+    let totalCI = 0, totalA4 = 0, totalPilosity = 0;
+    let validA4Count = 0, validPilosityCount = 0;
+    const discoidalCounts = { pozitif: 0, negatif: 0, nötr: 0 };
+
+    samples.forEach(sample => {
+      // Sayısal değerleri topla
+      totalCI += parseFloat(sample.ci) || 0;
+
+      if (sample.a4Angle !== undefined && sample.a4Angle !== null) {
+        totalA4 += parseFloat(sample.a4Angle);
+        validA4Count++;
+      }
+      if (sample.pilosity !== undefined && sample.pilosity !== null) {
+        totalPilosity += parseFloat(sample.pilosity);
+        validPilosityCount++;
+      }
+
+      // Diskoidal değerleri say
+      const disc = (sample.discoidal || '').toString().toLowerCase().trim();
+      if (['pozitif', 'positive', '+'].includes(disc)) discoidalCounts.pozitif++;
+      else if (['negatif', 'negative', '-'].includes(disc)) discoidalCounts.negatif++;
+      else discoidalCounts.nötr++;
+    });
+
+    const n = samples.length;
+    const avgCI = (totalCI / n).toFixed(2);
+    const avgA4 = validA4Count > 0 ? (totalA4 / validA4Count).toFixed(2) : null;
+    const avgPilosity = validPilosityCount > 0 ? (totalPilosity / validPilosityCount).toFixed(3) : null;
+
+    // En baskın diskoidal değeri bul
+    let dominantDiscoidal = 'nötr';
+    let maxCount = -1;
+    for (const [key, count] of Object.entries(discoidalCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        dominantDiscoidal = key;
+      }
+    }
+
+    // Bulunan ortalamaları ana motora gönder
+    return this.analyzeRace(avgCI, dominantDiscoidal, avgA4, avgPilosity);
+  }
+
+  /**
+   * Bireysel arı veya hesaplanmış koloni ortalaması analizi
+   */
   static analyzeRace(ci, discoidal, a4Angle = null, pilosity = null) {
     const ciNum = parseFloat(ci);
 
@@ -136,13 +202,15 @@ export class RutnerAIEngine {
         else if (diff <= 0.40) score += 8;
       }
 
-      // Diskoidal (%30)
-      if (race.discoidal === 'nötr') {
-        score += normalizedDisc === 'nötr' ? 30 : 18;
-      } else if (race.discoidal === normalizedDisc) {
-        score += 30;
-      } else if (normalizedDisc === 'nötr') {
-        score += 12;
+      // Diskoidal (%30) - DÜZELTİLDİ: Nötr geçişlerindeki asimetri kaldırıldı
+      if (race.discoidal === normalizedDisc) {
+        score += 30; // Tam eşleşme
+      } else if (race.discoidal === 'nötr' || normalizedDisc === 'nötr') {
+        // Hem veri tabanı nötr iken kullanıcı +/-, hem de veri tabanı +/- iken kullanıcı nötr girdiğinde eşit puanlanır.
+        score += 15; 
+      } else {
+        // Zıt eşleşme (pozitif vs negatif)
+        score += 0;
       }
 
       // A4 (%10)
