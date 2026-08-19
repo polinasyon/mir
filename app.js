@@ -1,3 +1,4 @@
+import { NektarModule } from './nektar.js';
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
 
@@ -11,18 +12,19 @@ class App {
       nektar: document.getElementById('nektarPanel'),
       hive: document.getElementById('hivePanel'),
       pedigree: document.getElementById('pedigreePanel'),
-      health: document.getElementById('healthPanel'), // Damızlık tablosunun olduğu panel
+      health: document.getElementById('healthPanel'),
       akademi: document.getElementById('akademiPanel')
     };
 
     this.modules = {
+      nektar: new NektarModule(),
       pedigree: new PedigreeModule(),
-      breeding: new BreedingModule() // Damızlık / Islah modülü eklendi
+      breeding: new BreedingModule()
     };
   }
 
   init() {
-    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
+    // Opera ve Mobil uyumlu menü buton dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         e.preventDefault();
@@ -54,8 +56,9 @@ class App {
 
     // Modülleri başlat
     try {
+      this.modules.nektar.init();
       this.modules.pedigree.init();
-      this.modules.breeding.init(); // Damızlık modülü başlatılıyor
+      this.modules.breeding.init();
     } catch (err) {
       console.error('Modül başlatma hatası:', err);
     }
@@ -80,8 +83,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      // Eğer damızlık/sağlık paneli açıldıysa kayıt tablosunu tazele
-      if (target === 'health' || target === 'pedigree') {
+      // Eğer damızlık / sağlık paneli açıldıysa kayıt tablosunu tazele
+      if (target === 'health') {
         if (typeof this.modules.breeding.renderTable === 'function') {
           this.modules.breeding.renderTable();
         }
