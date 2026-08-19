@@ -1,5 +1,6 @@
-import { PedigreeModule } from './pedigree.js';
 import { NectarEngine } from './nektar.js';
+import { PedigreeModule } from './pedigree.js';
+import { CameraModule } from './camera.js';
 
 // Varsayılan / Başlangıç Nektar Akım Parametreleri (Simav)
 const currentSimavData = {
@@ -25,18 +26,20 @@ class App {
       nektar: document.getElementById('nektarPanel'),
       hive: document.getElementById('hivePanel'),
       pedigree: document.getElementById('pedigreePanel'),
+      camera: document.getElementById('cameraPanel'),
       health: document.getElementById('healthPanel'),
       akademi: document.getElementById('akademiPanel')
     };
 
-    // Modüller
+    // Modül Örnekleri
     this.modules = {
-      pedigree: new PedigreeModule()
+      pedigree: typeof PedigreeModule !== 'undefined' ? new PedigreeModule() : null,
+      camera: typeof CameraModule !== 'undefined' ? new CameraModule() : null
     };
   }
 
   init() {
-    // 1. Sayfa ilk yüklendiğinde Ana Kart üzerindeki Canlı Nektar Skorunu Hesapla (%98)
+    // 1. Sayfa ilk yüklendiğinde Ana Kart üzerindeki Canlı Nektar Skorunu Hesapla
     if (typeof NectarEngine !== 'undefined') {
       NectarEngine.renderDashboard(currentSimavData);
     }
@@ -61,9 +64,12 @@ class App {
       });
     }
 
-    // 4. Pedigree Modülü Başlatma
+    // 4. Modülleri Başlatma (Init)
     if (this.modules.pedigree && typeof this.modules.pedigree.init === 'function') {
       this.modules.pedigree.init();
+    }
+    if (this.modules.camera && typeof this.modules.camera.init === 'function') {
+      this.modules.camera.init();
     }
   }
 
@@ -73,7 +79,7 @@ class App {
       this.overlay.classList.add('hidden');
     }
 
-    // Önceki açık panelleri gizle
+    // Önceki açık panelleri gizle ve varsa kamera akışını kapat
     this.closeAllPanels();
 
     // Seçilen paneli bul ve aç
@@ -98,10 +104,22 @@ class App {
           this.modules.pedigree.renderTable();
         }
       }
+
+      // C) Kamera / Morfometri Paneli Açıldıysa
+      if (target === 'camera' && this.modules.camera) {
+        if (typeof this.modules.camera.startStream === 'function') {
+          this.modules.camera.startStream();
+        }
+      }
     }
   }
 
   closeAllPanels() {
+    // Eğer kamera açıksa arkaplanda çalışmaya devam etmesin
+    if (this.modules.camera && typeof this.modules.camera.stopStream === 'function') {
+      this.modules.camera.stopStream();
+    }
+
     Object.values(this.panels).forEach((panel) => {
       if (panel) {
         panel.classList.remove('active');
@@ -109,7 +127,7 @@ class App {
       }
     });
 
-    // Kod ile dinamik yakalanabilecek diğer panelleri de gizle
+    // Sayfadaki tüm .content-panel sınıflarını temizle
     document.querySelectorAll('.content-panel').forEach((p) => {
       p.classList.remove('active');
       p.style.display = 'none';
