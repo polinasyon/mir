@@ -7,6 +7,10 @@ export class PedigreeModule {
     this.storage = new StorageService('polinasyon_queens');
     this.camera = null;
     this.lastAIResult = null;
+    
+    // YENİ: Kovan örneklem dizisi ve kameradan gelen anlık ölçüm
+    this.colonySamples = [];
+    this.currentMetrics = null;
   }
 
   init() {
@@ -18,6 +22,7 @@ export class PedigreeModule {
 
   bindDOM() {
     this.elements = {
+      // Form Elemanları
       qId: document.getElementById('qId'),
       qIrk: document.getElementById('qIrk'),
       qAba: document.getElementById('qAba'),
@@ -26,15 +31,25 @@ export class PedigreeModule {
       qBal: document.getElementById('qBal'),
       qVsh: document.getElementById('qVsh'),
       qOgul: document.getElementById('qOgul'),
+      saveBtn: document.getElementById('saveBtn'),
+      tableContainer: document.getElementById('pedigreeTableContainer'),
+      
+      // Kamera ve Metrik Elemanları
       ciValue: document.getElementById('ciValue'),
       diValue: document.getElementById('diValue'),
-      saveBtn: document.getElementById('saveBtn'),
       startCamBtn: document.getElementById('startCamBtn'),
       captureBtn: document.getElementById('captureBtn'),
       videoElement: document.getElementById('videoElement'),
       canvasElement: document.getElementById('canvasElement'),
       camPlaceholder: document.getElementById('camPlaceholder'),
-      tableContainer: document.getElementById('pedigreeTableContainer')
+      
+      // YENİ: Çoklu Örneklem ve A4 Elemanları
+      a4DistA: document.getElementById('a4DistA'),
+      a4DistB: document.getElementById('a4DistB'),
+      addSampleBtn: document.getElementById('addSampleBtn'),
+      sampleList: document.getElementById('sampleList'),
+      emptyListText: document.getElementById('emptyListText'),
+      analyzeColonyBtn: document.getElementById('analyzeColonyBtn')
     };
   }
 
@@ -47,21 +62,49 @@ export class PedigreeModule {
   }
 
   bindEvents() {
+    // 1. Ana Arı Kaydet
     this.elements.saveBtn.addEventListener('click', () => this.handleSave());
 
+    // 2. Kamera Aç/Kapat
     this.elements.startCamBtn.addEventListener('click', async () => {
       const active = await this.camera.toggle();
       this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
+      this.elements.startCamBtn.className = active ? 'btn-secondary' : 'btn-primary';
       this.elements.captureBtn.disabled = !active;
+      
+      if (active) {
+        this.elements.captureBtn.textContent = 'Fotoğraf Çek';
+        this.elements.captureBtn.classList.remove('btn-secondary');
+        this.elements.captureBtn.classList.add('btn-primary');
+      }
     });
 
+    // 3. Fotoğraf Çek & Doğrula
     this.elements.captureBtn.addEventListener('click', () => {
+      if (this.elements.captureBtn.textContent === 'İptal / Yeniden Çek') {
+        this.camera.resetPoints();
+        this.elements.captureBtn.textContent = 'Fotoğraf Çek';
+        this.elements.captureBtn.classList.replace('btn-secondary', 'btn-primary');
+        this.elements.ciValue.textContent = '-';
+        this.elements.diValue.textContent = '-';
+        this.currentMetrics = null;
+        
+        if (this.elements.addSampleBtn) this.elements.addSampleBtn.disabled = true;
+        
+        this.elements.videoElement.style.display = 'block';
+        this.elements.canvasElement.style.display = 'none';
+        return;
+      }
+
       const validation = this.camera.captureAndValidate();
 
       if (!validation.valid) {
         alert(validation.reason);
         return;
       }
+
+      this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
+      this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
 
       alert(
         '✅ Kanat Dokusu Algılandı!\n\n' +
@@ -72,42 +115,126 @@ export class PedigreeModule {
       );
     });
 
-    this.elements.canvasElement.addEventListener('click', (e) => {
+    // 4. Safari Uyumlu Canvas Nirengi (Point) Seçimi
+    let isProcessing = false;
+    const handleCanvasInteraction = (e) => {
+      if (e.cancelable) e.preventDefault();
+      if (isProcessing) return;
+      isProcessing = true;
+
       const rect = this.elements.canvasElement.getBoundingClientRect();
       const scaleX = this.elements.canvasElement.width / rect.width;
       const scaleY = this.elements.canvasElement.height / rect.height;
 
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const x = (clientX - rect.left) * scaleX;
+      const y = (clientY - rect.top) * scaleY;
 
       const metrics = this.camera.addPoint(x, y);
 
       if (metrics) {
+        this.currentMetrics = metrics;
         this.elements.ciValue.textContent = metrics.ci;
         this.elements.diValue.textContent = metrics.di;
 
-        // AI Analizi
-        const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
-        this.lastAIResult = aiResult;
+        if (this.elements.addSampleBtn) {
+          this.elements.addSampleBtn.disabled = false;
+        }
+      }
 
-        if (aiResult.error) {
-          alert(`⚠️ Analiz Hatası:\n${aiResult.message}`);
-          return;
+      setTimeout(() => { isProcessing = false; }, 200);
+    };
+
+    if (window.PointerEvent) {
+      this.elements.canvasElement.addEventListener('pointerdown', handleCanvasInteraction);
+    } else {
+      this.elements.canvasElement.addEventListener('click', handleCanvasInteraction);
+    }
+
+    // 5. YENİ: Arıyı Kovan Örneklemine Ekle
+    if (this.elements.addSampleBtn) {
+      this.elements.addSampleBtn.addEventListener('click', () => {
+        if (!this.currentMetrics) return;
+
+        let a4AngleVal = null;
+        if (this.elements.a4DistA && this.elements.a4DistB) {
+          const distA = parseFloat(this.elements.a4DistA.value);
+          const distB = parseFloat(this.elements.a4DistB.value);
+          
+          if (!isNaN(distA) && !isNaN(distB) && typeof RutnerAIEngine.calculateA4FromDistances === 'function') {
+            a4AngleVal = RutnerAIEngine.calculateA4FromDistances(distA, distB);
+          }
         }
 
+        this.colonySamples.push({
+          ci: this.currentMetrics.ci,
+          discoidal: this.currentMetrics.rawDiscoidal,
+          a4Angle: a4AngleVal
+        });
+
+        this.updateSampleListUI();
+
+        // Sıradaki arı için kamerayı sıfırla
+        this.camera.resetPoints();
+        this.currentMetrics = null;
+        this.elements.ciValue.textContent = '-';
+        this.elements.diValue.textContent = '-';
+        if (this.elements.a4DistA) this.elements.a4DistA.value = '';
+        if (this.elements.a4DistB) this.elements.a4DistB.value = '';
+        this.elements.addSampleBtn.disabled = true;
+        
+        this.elements.canvasElement.style.display = 'none';
+        this.elements.videoElement.style.display = 'block';
+        this.elements.captureBtn.textContent = 'Fotoğraf Çek';
+        this.elements.captureBtn.classList.replace('btn-secondary', 'btn-primary');
+      });
+    }
+
+    // 6. YENİ: Kovan Ortalamasını Analiz Et
+    if (this.elements.analyzeColonyBtn) {
+      this.elements.analyzeColonyBtn.addEventListener('click', () => {
+        if (this.colonySamples.length === 0) return;
+        
+        const aiResult = RutnerAIEngine.analyzeColony(this.colonySamples);
+        this.lastAIResult = aiResult; // Kaydetme işlemi için sonucu sakla
+        
         alert(
-          `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
+          `📊 RUTNER AI KOLONİ ANALİZİ (${this.colonySamples.length} Arı)\n` +
           `------------------------------------\n` +
-          `Hesaplanan CI: ${metrics.ci}\n` +
-          `Diskoidal: ${metrics.rawDiscoidal}\n` +
           `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
           `AI Güven Skoru: %${aiResult.confidence}\n` +
-          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}`
+          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Varyasyon / Melezleşme' : '✅ Stabil Saf Kan / Standart Uyumlu'}`
         );
-      }
-    });
+      });
+    }
 
     window.deleteQueen = (id) => this.handleDelete(id);
+  }
+
+  // Örneklem listesini HTML'e yazdır
+  updateSampleListUI() {
+    if (!this.elements.sampleList) return;
+    
+    if (this.elements.emptyListText) {
+      this.elements.emptyListText.style.display = 'none';
+    }
+
+    const index = this.colonySamples.length - 1;
+    const sample = this.colonySamples[index];
+    
+    const li = document.createElement('li');
+    li.style.padding = '8px 10px';
+    li.style.borderBottom = '1px solid #374151';
+    li.style.color = '#e5e7eb';
+    li.innerHTML = `<strong>Arı ${index + 1}:</strong> CI: ${sample.ci} | DI: ${sample.discoidal} ${sample.a4Angle ? `| A4: ${sample.a4Angle}°` : ''}`;
+    
+    this.elements.sampleList.appendChild(li);
+
+    if (this.elements.analyzeColonyBtn) {
+      this.elements.analyzeColonyBtn.disabled = false;
+    }
   }
 
   handleSave() {
@@ -115,6 +242,16 @@ export class PedigreeModule {
     if (!id) {
       alert('Küpe / Numara zorunludur!');
       return;
+    }
+
+    // Kaydedilecek CI ve DI değerlerini belirle (Çoklu kovan örneklemi varsa ortalamayı al)
+    let finalCI = this.elements.ciValue.textContent;
+    let finalDI = this.elements.diValue.textContent;
+
+    if (this.colonySamples.length > 0) {
+      const avgCI = (this.colonySamples.reduce((sum, s) => sum + parseFloat(s.ci), 0) / this.colonySamples.length).toFixed(2);
+      finalCI = `${avgCI} (Ort.)`;
+      finalDI = 'Koloni Analizi';
     }
 
     const queen = {
@@ -126,14 +263,23 @@ export class PedigreeModule {
       bal: this.elements.qBal.value.trim(),
       vsh: this.elements.qVsh.value.trim(),
       ogul: this.elements.qOgul.value,
-      ci: this.elements.ciValue.textContent,
-      di: this.elements.diValue.textContent,
+      ci: finalCI,
+      di: finalDI,
       aiRace: this.lastAIResult ? this.lastAIResult.predictedRace : 'Analiz Yapılmadı',
       date: new Date().toLocaleString('tr-TR')
     };
 
     const status = this.storage.saveOrUpdate(queen);
     alert(status === 'updated' ? `Güncellendi: ${id}` : `Kaydedildi: ${id}`);
+    
+    // İşlem bittikten sonra kovan örneklemini sıfırla
+    this.colonySamples = [];
+    if (this.elements.sampleList) {
+      this.elements.sampleList.innerHTML = '<li id="emptyListText" style="padding:12px; text-align:center; color:#9ca3af;">Henüz ölçüm eklenmedi. (Hedef: 10-15 Arı)</li>';
+      this.bindDOM(); // emptyListText referansını tazelemek için
+    }
+    if (this.elements.analyzeColonyBtn) this.elements.analyzeColonyBtn.disabled = true;
+    
     this.renderTable();
   }
 
