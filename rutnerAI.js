@@ -263,16 +263,19 @@ export class RutnerAIEngine {
       const race = RUTNER_DATABASE[key];
       let score = 0;
 
-      // 1. CI (%48) – Gaussian benzeri yumuşak puanlama
-      if (ciNum >= race.ciMin && ciNum <= race.ciMax) {
-        score += 48;
-      } else {
-        const mid = (race.ciMin + race.ciMax) / 2;
-        const range = (race.ciMax - race.ciMin) / 2;
-        const diff = Math.abs(ciNum - mid);
-        const normalized = Math.max(0, 1 - (diff / (range + 0.55)));
-        score += normalized * 48;
-      }
+    // GÜNCELLENMİŞ (GAUSSIAN) KOD:
+// 1. CI (%48) – Tam Gaussian (Çan Eğrisi) Puanlaması
+const mid = (race.ciMin + race.ciMax) / 2;
+// Standart sapma tahmini (aralığın yarısı / 2, yani 2-sigma kuralı)
+const sigma = ((race.ciMax - race.ciMin) / 2) || 0.2; 
+const diff = ciNum - mid;
+
+// Gaussian Çan Eğrisi Formülü: e^(-(x-mu)^2 / (2 * sigma^2))
+const gaussianFactor = Math.exp(-Math.pow(diff, 2) / (2 * Math.pow(sigma, 2)));
+
+// Maksimum 48 puan üzerinden ağırlıklandır
+score += gaussianFactor * 48;
+
 
       // 2. Diskoidal (%28)
       if (race.discoidal === normalizedDisc) {
