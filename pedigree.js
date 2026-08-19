@@ -48,31 +48,57 @@ export class PedigreeModule {
 
   bindEvents() {
     this.elements.saveBtn.addEventListener('click', () => this.handleSave());
-    
+
     this.elements.startCamBtn.addEventListener('click', async () => {
       const active = await this.camera.toggle();
       this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
       this.elements.captureBtn.disabled = !active;
     });
 
+    // 1. AŞAMA: Görsel Dondurma ve Kontrast Tespiti
     this.elements.captureBtn.addEventListener('click', () => {
-      const metrics = this.camera.captureAndAnalyze();
+      const validation = this.camera.captureAndValidate();
+
+      if (!validation.valid) {
+        alert(validation.reason);
+        return;
+      }
+
+      alert(
+        '✅ Kanat Dokusu Algılandı!\n\n' +
+        'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
+        '1. Nokta: A Noktası (Ana Damar Başı)\n' +
+        '2. Nokta: B Noktası (Kübital Kesişim)\n' +
+        '3. Nokta: C Noktası (Alt Damar Bitişi)'
+      );
+    });
+
+    // 2. AŞAMA: Canvas Üzerinde Dokunarak Nirengi (Point) Seçimi
+    this.elements.canvasElement.addEventListener('click', (e) => {
+      const rect = this.elements.canvasElement.getBoundingClientRect();
+      const scaleX = this.elements.canvasElement.width / rect.width;
+      const scaleY = this.elements.canvasElement.height / rect.height;
+
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      const metrics = this.camera.addPoint(x, y);
+
       if (metrics) {
         this.elements.ciValue.textContent = metrics.ci;
         this.elements.diValue.textContent = metrics.di;
 
-        // Rutner AI Analizini Çalıştır
+        // Rutner AI Analizini Gerçek Ölçüm Değerleriyle Çalıştır
         const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
         this.lastAIResult = aiResult;
 
         alert(
           `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
           `------------------------------------\n` +
+          `Hesaplanan CI: ${metrics.ci}\n` +
           `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
           `AI Güven Skoru: %${aiResult.confidence}\n` +
-          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}\n\n` +
-          `Kübital İndeks (CI): ${metrics.ci}\n` +
-          `Diskoidal Kayma: ${metrics.di}`
+          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}`
         );
       }
     });
@@ -104,7 +130,6 @@ export class PedigreeModule {
 
     const status = this.storage.saveOrUpdate(queen);
     alert(status === 'updated' ? `Güncellendi: ${id}` : `Kaydedildi: ${id}`);
-
     this.renderTable();
   }
 
