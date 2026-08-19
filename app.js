@@ -1,4 +1,24 @@
 import { PedigreeModule } from './pedigree.js';
+import { NectarEngine } from './nektar.js';
+
+// Ekran görüntüsündeki (Simav) canlı parametreler
+const currentSimavData = {
+  temp: 16,
+  humidity: 64,
+  dewPoint: 9,
+  windSpeed: 1,
+  rain: 0,
+  cloud: 0,
+  avgTemp3Days: 21,
+  gddRatio: 0.76 // Referans yıla göre %24 geride (%61 Kapasite)
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Buton (Ana Sayfa) yüklendiğinde Nektar Akım Motorunu çalıştırır
+  if (typeof NectarEngine !== 'undefined') {
+    NectarEngine.renderDashboard(currentSimavData);
+  }
+});
 
 class App {
   constructor() {
