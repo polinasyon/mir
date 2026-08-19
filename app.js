@@ -1,8 +1,6 @@
-import { PedigreeModule } from './pedigree.js';
-import { NectarEngine } from './nektar.js';
-
-// Ekran görüntüsündeki (Simav) canlı parametreler
+// Varsayılan / Başlangıç Nektar Akım Parametreleri (Simav)
 const currentSimavData = {
+  name: "Kütahya / Simav (Ege Geçişi)",
   temp: 16,
   humidity: 64,
   dewPoint: 9,
@@ -10,22 +8,16 @@ const currentSimavData = {
   rain: 0,
   cloud: 0,
   avgTemp3Days: 21,
-  gddRatio: 0.76 // Referans yıla göre %24 geride (%61 Kapasite)
+  gddRatio: 0.76
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. Buton (Ana Sayfa) yüklendiğinde Nektar Akım Motorunu çalıştırır
-  if (typeof NectarEngine !== 'undefined') {
-    NectarEngine.renderDashboard(currentSimavData);
-  }
-});
 
 class App {
   constructor() {
     this.overlay = document.getElementById('overlay');
     this.menuToggle = document.getElementById('menuToggle');
-    this.menuBtns = document.querySelectorAll('.menu-btn[data-target]');
+    this.menuBtns = document.querySelectorAll('.menu-btn[data-target], [data-target]');
     
+    // Uygulama Panelleri
     this.panels = {
       nektar: document.getElementById('nektarPanel'),
       hive: document.getElementById('hivePanel'),
@@ -34,46 +26,95 @@ class App {
       akademi: document.getElementById('akademiPanel')
     };
 
+    // Modüller (Global pencereden / window üzerinden alınır)
     this.modules = {
-      pedigree: new PedigreeModule()
+      pedigree: typeof PedigreeModule !== 'undefined' ? new PedigreeModule() : null
     };
   }
 
   init() {
+    // 1. Sayfa ilk yüklendiğinde Nektar Akım Motorunu çalıştırır
+    if (typeof NectarEngine !== 'undefined') {
+      NectarEngine.renderDashboard(currentSimavData);
+    }
+
+    // 2. Menü & Kart Buton Dinleyicilerini Bağla
     this.menuBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.target;
-        this.openPanel(target);
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = btn.getAttribute('data-target') || btn.dataset.target;
+        if (target) {
+          this.openPanel(target);
+        }
       });
     });
 
-    this.menuToggle.addEventListener('click', () => {
-      this.overlay.classList.toggle('hidden');
-    });
+    // 3. Hamburger Menü / Overlay Aç-Kapat Kontrolü
+    if (this.menuToggle) {
+      this.menuToggle.addEventListener('click', () => {
+        if (this.overlay) {
+          this.overlay.classList.toggle('hidden');
+        }
+      });
+    }
 
-    this.modules.pedigree.init();
+    // 4. Pedigree Modülü Başlatma
+    if (this.modules.pedigree && typeof this.modules.pedigree.init === 'function') {
+      this.modules.pedigree.init();
+    }
   }
 
   openPanel(target) {
-    this.overlay.classList.add('hidden');
+    // Menü açıksa kapat
+    if (this.overlay) {
+      this.overlay.classList.add('hidden');
+    }
+
+    // Önceki açık panelleri gizle
     this.closeAllPanels();
 
-    if (this.panels[target]) {
-      this.panels[target].classList.add('active');
+    // Seçilen paneli bul ve aç
+    const targetPanel = this.panels[target] || 
+                        document.getElementById(`${target}Panel`) || 
+                        document.querySelector(`[data-panel="${target}"]`);
 
-      if (target === 'pedigree') {
-        this.modules.pedigree.renderTable();
+    if (targetPanel) {
+      targetPanel.classList.add('active');
+      targetPanel.style.display = 'block';
+
+      // --- PANEL ÖZEL İŞLEMLERİ ---
+
+      // A) Nektar Akımı Paneli Açıldıysa
+      if (target === 'nektar' && typeof NectarEngine !== 'undefined') {
+        NectarEngine.renderDashboard(currentSimavData);
+      }
+
+      // B) Pedigree Paneli Açıldıysa
+      if (target === 'pedigree' && this.modules.pedigree) {
+        if (typeof this.modules.pedigree.renderTable === 'function') {
+          this.modules.pedigree.renderTable();
+        }
       }
     }
   }
 
   closeAllPanels() {
     Object.values(this.panels).forEach((panel) => {
-      if (panel) panel.classList.remove('active');
+      if (panel) {
+        panel.classList.remove('active');
+        panel.style.display = 'none';
+      }
+    });
+
+    // Dinamik olarak yakalanabilecek diğer tüm panelleri de gizle
+    document.querySelectorAll('.content-panel').forEach((p) => {
+      p.classList.remove('active');
+      p.style.display = 'none';
     });
   }
 }
 
+// Uygulamayı Başlat
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
   app.init();
