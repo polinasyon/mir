@@ -138,39 +138,81 @@ export class CameraService {
   /*  Capture + Validasyon + Auto-Keypoint                              */
   /* ------------------------------------------------------------------ */
   async captureAndValidate() {
-    if (!this.stream) {
-      return { valid: false, reason: 'Kamera kapalı.' };
+  if (!this.stream) {
+    return { valid: false, reason: 'Kamera kapalı.' };
+  }
+
+  // Canvas boyutunu ayarla
+  this.canvas.width = this.video.videoWidth || 640;
+  this.canvas.height = this.video.videoHeight || 480;
+
+  // Görüntüyü çiz
+  this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+
+  const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+  const data = imgData.data;
+
+  // --- Kontrast / doku kontrolü ---
+  let totalVariance = 0;
+  let pixelCount = 0;
+
+  // Her 4 pikselde bir örnekle (hız + yeterlilik dengesi)
+  for (let i = 0; i < data.length; i += 16) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
+    totalVariance += Math.abs(avg - nextAvg);
+    pixelCount++;
+  }
+
+  const contrastScore = totalVariance / (pixelCount || 1);
+
+  if (contrastScore < 6.5) {
+    return {
+      valid: false,
+      reason: '⚠️ Görüntüde kanat damarı/dokusu tespit edilemedi. Lütfen net bir kanat fotoğrafı çekin.'
+    };
+  }
+
+  // Görüntüyü kaydet ve arayüzü güncelle
+  this.capturedImageData = imgData;
+  this.video.style.display = 'none';
+  this.canvas.style.display = 'block';
+  this.points = [];
+
+  // --- Otomatik Keypoint Tespiti ---
+  if (this.autoDetectionMode) {
+    try {
+      const ready = await this.ensureOpenCV();
+
+      if (ready) {
+        const detected = this.detectWingKeypoints(imgData);
+
+        if (detected && detected.length === 3) {
+          this.points = detected;
+          this.redrawCanvas();
+
+          const metrics = this.calculateMetrics();
+          if (metrics) {
+            return {
+              valid: true,
+              autoDetected: true,
+              metrics
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Otomatik keypoint tespiti başarısız:', err);
+      // Hata olsa bile manuel moda düşüyoruz
     }
+  }
 
-    this.canvas.width = this.video.videoWidth || 640;
-    this.canvas.height = this.video.videoHeight || 480;
-    this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-
-    const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-    const data = imgData.data;
-
-    // Basit kontrast skoru
-    let totalVariance = 0;
-    let pixelCount = 0;
-    for (let i = 0; i < data.length; i += 16) {
-      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
-      totalVariance += Math.abs(avg - nextAvg);
-      pixelCount++;
-    }
-    const contrastScore = totalVariance / pixelCount;
-
-    if (contrastScore < 6.5) {
-      return {
-        valid: false,
-        reason: '⚠️ Görüntüde kanat damarı/dokusu tespit edilemedi. Lütfen net bir kanat fotoğrafı çekin.'
-      };
-    }
-
-    this.capturedImageData = imgData;
-    this.video.style.display = 'none';
-    this.canvas.style.display = 'block';
-    this.points = [];
+  // Otomatik tespit yapılamadı → manuel seçim için hazır
+  return {
+    valid: true,
+    autoDetected: false
+  };
+}
 
     // OpenCV hazırsa otomatik tespit dene
     if (this.autoDetectionMode) {
