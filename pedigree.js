@@ -84,7 +84,7 @@ export class PedigreeModule {
         
         if (this.elements.addSampleBtn) {
           this.elements.addSampleBtn.disabled = true;
-          this.elements.addSampleBtn.style.opacity = '0.6';
+          this.elements.addSampleBtn.style.opacity = '0.5';
           this.elements.addSampleBtn.style.cursor = 'not-allowed';
         }
         
@@ -180,7 +180,7 @@ export class PedigreeModule {
         if (this.elements.a4DistB) this.elements.a4DistB.value = '';
         
         this.elements.addSampleBtn.disabled = true;
-        this.elements.addSampleBtn.style.opacity = '0.6';
+        this.elements.addSampleBtn.style.opacity = '0.5';
         this.elements.addSampleBtn.style.cursor = 'not-allowed';
         
         this.elements.canvasElement.style.display = 'none';
@@ -276,13 +276,13 @@ export class PedigreeModule {
     
     if (this.elements.analyzeColonyBtn) {
       this.elements.analyzeColonyBtn.disabled = true;
-      this.elements.analyzeColonyBtn.style.opacity = '0.6';
+      this.elements.analyzeColonyBtn.style.opacity = '0.5';
       this.elements.analyzeColonyBtn.style.cursor = 'not-allowed';
     }
     
     if (this.elements.addSampleBtn) {
       this.elements.addSampleBtn.disabled = true;
-      this.elements.addSampleBtn.style.opacity = '0.6';
+      this.elements.addSampleBtn.style.opacity = '0.5';
       this.elements.addSampleBtn.style.cursor = 'not-allowed';
     }
     
