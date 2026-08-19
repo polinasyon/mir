@@ -55,7 +55,6 @@ export class PedigreeModule {
       this.elements.captureBtn.disabled = !active;
     });
 
-    // 1. AŞAMA: Görsel Dondurma ve Kontrast Tespiti
     this.elements.captureBtn.addEventListener('click', () => {
       const validation = this.camera.captureAndValidate();
 
@@ -73,7 +72,6 @@ export class PedigreeModule {
       );
     });
 
-    // 2. AŞAMA: Canvas Üzerinde Dokunarak Nirengi (Point) Seçimi
     this.elements.canvasElement.addEventListener('click', (e) => {
       const rect = this.elements.canvasElement.getBoundingClientRect();
       const scaleX = this.elements.canvasElement.width / rect.width;
@@ -88,14 +86,20 @@ export class PedigreeModule {
         this.elements.ciValue.textContent = metrics.ci;
         this.elements.diValue.textContent = metrics.di;
 
-        // Rutner AI Analizini Gerçek Ölçüm Değerleriyle Çalıştır
+        // AI Analizi
         const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
         this.lastAIResult = aiResult;
+
+        if (aiResult.error) {
+          alert(`⚠️ Analiz Hatası:\n${aiResult.message}`);
+          return;
+        }
 
         alert(
           `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
           `------------------------------------\n` +
           `Hesaplanan CI: ${metrics.ci}\n` +
+          `Diskoidal: ${metrics.rawDiscoidal}\n` +
           `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
           `AI Güven Skoru: %${aiResult.confidence}\n` +
           `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}`
