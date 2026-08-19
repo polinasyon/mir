@@ -8,7 +8,6 @@ export class PedigreeModule {
     this.camera = null;
     this.lastAIResult = null;
     
-    // YENİ: Kovan örneklem dizisi ve kameradan gelen anlık ölçüm
     this.colonySamples = [];
     this.currentMetrics = null;
   }
@@ -22,7 +21,6 @@ export class PedigreeModule {
 
   bindDOM() {
     this.elements = {
-      // Form Elemanları
       qId: document.getElementById('qId'),
       qIrk: document.getElementById('qIrk'),
       qAba: document.getElementById('qAba'),
@@ -34,7 +32,6 @@ export class PedigreeModule {
       saveBtn: document.getElementById('saveBtn'),
       tableContainer: document.getElementById('pedigreeTableContainer'),
       
-      // Kamera ve Metrik Elemanları
       ciValue: document.getElementById('ciValue'),
       diValue: document.getElementById('diValue'),
       startCamBtn: document.getElementById('startCamBtn'),
@@ -43,7 +40,6 @@ export class PedigreeModule {
       canvasElement: document.getElementById('canvasElement'),
       camPlaceholder: document.getElementById('camPlaceholder'),
       
-      // YENİ: Çoklu Örneklem ve A4 Elemanları
       a4DistA: document.getElementById('a4DistA'),
       a4DistB: document.getElementById('a4DistB'),
       addSampleBtn: document.getElementById('addSampleBtn'),
@@ -62,10 +58,8 @@ export class PedigreeModule {
   }
 
   bindEvents() {
-    // 1. Ana Arı Kaydet
     this.elements.saveBtn.addEventListener('click', () => this.handleSave());
 
-    // 2. Kamera Aç/Kapat
     this.elements.startCamBtn.addEventListener('click', async () => {
       const active = await this.camera.toggle();
       this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
@@ -79,7 +73,6 @@ export class PedigreeModule {
       }
     });
 
-    // 3. Fotoğraf Çek & Doğrula
     this.elements.captureBtn.addEventListener('click', () => {
       if (this.elements.captureBtn.textContent === 'İptal / Yeniden Çek') {
         this.camera.resetPoints();
@@ -97,7 +90,6 @@ export class PedigreeModule {
       }
 
       const validation = this.camera.captureAndValidate();
-
       if (!validation.valid) {
         alert(validation.reason);
         return;
@@ -115,7 +107,6 @@ export class PedigreeModule {
       );
     });
 
-    // 4. Safari Uyumlu Canvas Nirengi (Point) Seçimi
     let isProcessing = false;
     const handleCanvasInteraction = (e) => {
       if (e.cancelable) e.preventDefault();
@@ -153,7 +144,6 @@ export class PedigreeModule {
       this.elements.canvasElement.addEventListener('click', handleCanvasInteraction);
     }
 
-    // 5. YENİ: Arıyı Kovan Örneklemine Ekle
     if (this.elements.addSampleBtn) {
       this.elements.addSampleBtn.addEventListener('click', () => {
         if (!this.currentMetrics) return;
@@ -176,7 +166,6 @@ export class PedigreeModule {
 
         this.updateSampleListUI();
 
-        // Sıradaki arı için kamerayı sıfırla
         this.camera.resetPoints();
         this.currentMetrics = null;
         this.elements.ciValue.textContent = '-';
@@ -192,13 +181,12 @@ export class PedigreeModule {
       });
     }
 
-    // 6. YENİ: Kovan Ortalamasını Analiz Et
     if (this.elements.analyzeColonyBtn) {
       this.elements.analyzeColonyBtn.addEventListener('click', () => {
         if (this.colonySamples.length === 0) return;
         
         const aiResult = RutnerAIEngine.analyzeColony(this.colonySamples);
-        this.lastAIResult = aiResult; // Kaydetme işlemi için sonucu sakla
+        this.lastAIResult = aiResult;
         
         alert(
           `📊 RUTNER AI KOLONİ ANALİZİ (${this.colonySamples.length} Arı)\n` +
@@ -213,7 +201,6 @@ export class PedigreeModule {
     window.deleteQueen = (id) => this.handleDelete(id);
   }
 
-  // Örneklem listesini HTML'e yazdır
   updateSampleListUI() {
     if (!this.elements.sampleList) return;
     
@@ -244,7 +231,6 @@ export class PedigreeModule {
       return;
     }
 
-    // Kaydedilecek CI ve DI değerlerini belirle (Çoklu kovan örneklemi varsa ortalamayı al)
     let finalCI = this.elements.ciValue.textContent;
     let finalDI = this.elements.diValue.textContent;
 
@@ -272,13 +258,12 @@ export class PedigreeModule {
     const status = this.storage.saveOrUpdate(queen);
     alert(status === 'updated' ? `Güncellendi: ${id}` : `Kaydedildi: ${id}`);
     
-    // İşlem bittikten sonra kovan örneklemini sıfırla
     this.colonySamples = [];
     if (this.elements.sampleList) {
       this.elements.sampleList.innerHTML = '<li id="emptyListText" style="padding:12px; text-align:center; color:#9ca3af;">Henüz ölçüm eklenmedi. (Hedef: 10-15 Arı)</li>';
-      this.bindDOM(); // emptyListText referansını tazelemek için
     }
     if (this.elements.analyzeColonyBtn) this.elements.analyzeColonyBtn.disabled = true;
+    if (this.elements.addSampleBtn) this.elements.addSampleBtn.disabled = true;
     
     this.renderTable();
   }
