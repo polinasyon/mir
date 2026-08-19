@@ -1,4 +1,4 @@
-export class NektarModule {
+window.NektarModule = class {
   constructor() {
     this.currentLocation = "Ankara";
   }
@@ -82,5 +82,5 @@ export class NektarModule {
 
     this.elements.floraTimelineContainer.innerHTML = html;
   }
-}
+};
 
