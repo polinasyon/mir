@@ -1,7 +1,7 @@
 /**
  * Friedrich Ruttner & Türkiye Arıcılık Araştırmaları
  * Morfometrik Standartlar + AI Irk & Ekotip Tanılama Motoru
- * Bilimsel v2.5 (Koloni Destekli + İstatistiksel)
+ * Bilimsel v3.0 (Koloni Destekli + İstatistiksel + Gelişmiş Skorlama)
  */
 
 export const RUTNER_DATABASE = {
@@ -105,6 +105,13 @@ export class RutnerAIEngine {
     return arr.reduce((a, b) => a + b, 0) / arr.length;
   }
 
+  static median(arr) {
+    if (!arr.length) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
   static stdDev(arr) {
     if (arr.length < 2) return 0;
     const m = this.mean(arr);
@@ -116,6 +123,17 @@ export class RutnerAIEngine {
     const m = this.mean(arr);
     if (m === 0) return 0;
     return (this.stdDev(arr) / m) * 100;
+  }
+
+  static confidenceInterval95(arr) {
+    if (arr.length < 2) return { low: 0, high: 0 };
+    const m = this.mean(arr);
+    const se = this.stdDev(arr) / Math.sqrt(arr.length);
+    const margin = 1.96 * se;
+    return {
+      low: parseFloat((m - margin).toFixed(3)),
+      high: parseFloat((m + margin).toFixed(3))
+    };
   }
 
   // ====================== A4 AÇISI ======================
@@ -159,6 +177,7 @@ export class RutnerAIEngine {
 
     const n = samples.length;
     const avgCI = this.mean(ciValues);
+    const medianCI = this.median(ciValues);
     const avgA4 = a4Values.length ? this.mean(a4Values) : null;
     const avgPilosity = pilosityValues.length ? this.mean(pilosityValues) : null;
 
@@ -172,39 +191,42 @@ export class RutnerAIEngine {
       }
     }
 
-    // İstatistiksel veriler
     const ciStd = this.stdDev(ciValues);
-    const ciCV = this.coefficientOfVariation(ciValues); // %
+    const ciCV = this.coefficientOfVariation(ciValues);
+    const ciCI95 = this.confidenceInterval95(ciValues);
 
-    // Ana analiz
-    const raceResult = this.analyzeRace(avgCI, dominantDiscoidal, avgA4, avgPilosity);
+    // Ana analiz (medyan CI ile daha robust)
+    const raceResult = this.analyzeRace(medianCI, dominantDiscoidal, avgA4, avgPilosity);
 
-    // Hybrid Index (0-100)  → yüksek = daha fazla melezleşme riski
+    // Hybrid Index (0-100) → yüksek = daha fazla melezleşme riski
     const hybridIndex = Math.min(100, Math.round(
-      (ciCV * 1.8) +                                  // varyasyon
-      (raceResult.confidence < 70 ? 25 : 0) +         // düşük güven
-      (n < 8 ? 15 : 0)                                // az örneklem cezası
+      (ciCV * 1.6) +
+      (raceResult.confidence < 72 ? 22 : 0) +
+      (n < 8 ? 18 : n < 12 ? 8 : 0) +
+      (Math.abs(avgCI - medianCI) > 0.15 ? 10 : 0)   // outlier cezası
     ));
 
     // Koloni Kalite Skoru (0-100)
     const qualityScore = Math.max(0, Math.min(100, Math.round(
-      (raceResult.confidence * 0.55) +
-      (Math.max(0, 40 - ciCV) * 0.8) +                // düşük varyasyon bonus
-      (n >= 10 ? 15 : n >= 6 ? 8 : 0)                 // örneklem sayısı bonus
+      (raceResult.confidence * 0.52) +
+      (Math.max(0, 45 - ciCV) * 0.75) +
+      (n >= 12 ? 18 : n >= 8 ? 10 : n >= 5 ? 4 : 0)
     )));
 
     return {
       ...raceResult,
       sampleCount: n,
       avgCI: parseFloat(avgCI.toFixed(2)),
+      medianCI: parseFloat(medianCI.toFixed(2)),
       avgA4: avgA4 !== null ? parseFloat(avgA4.toFixed(2)) : null,
       avgPilosity: avgPilosity !== null ? parseFloat(avgPilosity.toFixed(3)) : null,
       dominantDiscoidal,
       ciStdDev: parseFloat(ciStd.toFixed(3)),
-      ciCV: parseFloat(ciCV.toFixed(1)),              // %
+      ciCV: parseFloat(ciCV.toFixed(1)),
+      ci95: ciCI95,
       hybridIndex,
       qualityScore,
-      recommendation: this.generateRecommendation(raceResult, hybridIndex, qualityScore, n)
+      recommendation: this.generateRecommendation(raceResult, hybridIndex, qualityScore, n, ciCV)
     };
   }
 
@@ -241,45 +263,46 @@ export class RutnerAIEngine {
       const race = RUTNER_DATABASE[key];
       let score = 0;
 
-      // 1. CI (%50)
+      // 1. CI (%48) – Gaussian benzeri yumuşak puanlama
       if (ciNum >= race.ciMin && ciNum <= race.ciMax) {
-        score += 50;
+        score += 48;
       } else {
-        const diff = Math.min(Math.abs(ciNum - race.ciMin), Math.abs(ciNum - race.ciMax));
-        if (diff <= 0.10) score += 38;
-        else if (diff <= 0.20) score += 25;
-        else if (diff <= 0.35) score += 12;
-        else if (diff <= 0.50) score += 4;
+        const mid = (race.ciMin + race.ciMax) / 2;
+        const range = (race.ciMax - race.ciMin) / 2;
+        const diff = Math.abs(ciNum - mid);
+        const normalized = Math.max(0, 1 - (diff / (range + 0.55)));
+        score += normalized * 48;
       }
 
-      // 2. Diskoidal (%30)
+      // 2. Diskoidal (%28)
       if (race.discoidal === normalizedDisc) {
-        score += 30;
+        score += 28;
       } else if (race.discoidal === 'nötr' || normalizedDisc === 'nötr') {
-        score += 14;
+        score += 12;
       } else {
-        score += 0; // zıt
+        score += 0;
       }
 
-      // 3. A4 Açısı (%12)
+      // 3. A4 Açısı (%15)
       if (a4Angle !== null && !isNaN(parseFloat(a4Angle))) {
         const angleDiff = Math.abs(parseFloat(a4Angle) - race.a4Angle);
-        if (angleDiff <= 1.5) score += 12;
-        else if (angleDiff <= 3.0) score += 8;
-        else if (angleDiff <= 5.0) score += 4;
-        else if (angleDiff <= 7.5) score += 1;
+        if (angleDiff <= 1.2) score += 15;
+        else if (angleDiff <= 2.5) score += 11;
+        else if (angleDiff <= 4.0) score += 7;
+        else if (angleDiff <= 6.5) score += 3;
+        else score += 0;
       } else {
-        score += 5; // veri yok → nötr puan
+        score += 6; // veri yok → nötr
       }
 
-      // 4. Pilosity (%8)
+      // 4. Pilosity (%9)
       if (pilosity !== null && !isNaN(parseFloat(pilosity))) {
         const pilDiff = Math.abs(parseFloat(pilosity) - race.pilosity);
-        if (pilDiff <= 0.03) score += 8;
-        else if (pilDiff <= 0.06) score += 5;
-        else if (pilDiff <= 0.10) score += 2;
+        if (pilDiff <= 0.025) score += 9;
+        else if (pilDiff <= 0.05) score += 6;
+        else if (pilDiff <= 0.09) score += 3;
       } else {
-        score += 3;
+        score += 3.5;
       }
 
       candidates.push({
@@ -298,14 +321,14 @@ export class RutnerAIEngine {
     const confidence = best ? best.score : 0;
 
     const isHybrid =
-      confidence < 67 ||
-      (second && (best.score - second.score) < 11);
+      confidence < 70 ||
+      (second && (best.score - second.score) < 9.5);
 
     return {
       predictedRace: best ? best.name : 'Belirsiz / Genetik Sapma',
       confidence: Math.round(confidence * 10) / 10,
       isHybrid,
-      candidates: candidates.slice(0, 5), // en iyi 5 aday
+      candidates: candidates.slice(0, 5),
       topThree: candidates.slice(0, 3),
       error: false
     };
@@ -320,38 +343,43 @@ export class RutnerAIEngine {
     if (['negatif', 'negative', '-', 'neg'].includes(raw)) return 'negatif';
     if (['nötr', 'notr', 'neutral', '0', 'neut'].includes(raw)) return 'nötr';
 
-    // Sayısal gelirse (eski sistem uyumluluğu)
     const num = parseFloat(raw);
     if (!isNaN(num)) {
-      if (num > 2) return 'pozitif';
-      if (num < -2) return 'negatif';
+      if (num > 1.8) return 'pozitif';
+      if (num < -1.8) return 'negatif';
       return 'nötr';
     }
 
     return null;
   }
 
-  static generateRecommendation(raceResult, hybridIndex, qualityScore, sampleCount) {
+  static generateRecommendation(raceResult, hybridIndex, qualityScore, sampleCount, ciCV) {
     const recs = [];
 
     if (sampleCount < 8) {
       recs.push('Örneklem sayısı düşük. Daha güvenilir sonuç için 10-15 arı ölçümü önerilir.');
+    } else if (sampleCount >= 12) {
+      recs.push('Yeterli örneklem büyüklüğü sağlandı.');
     }
 
-    if (hybridIndex > 55) {
+    if (hybridIndex > 58) {
       recs.push('Yüksek genetik varyasyon tespit edildi. Saf hat koruma veya kontrollü ıslah programı önerilir.');
-    } else if (hybridIndex < 25 && raceResult.confidence > 75) {
+    } else if (hybridIndex < 22 && raceResult.confidence > 78) {
       recs.push('Koloni oldukça homojen görünüyor. Saf hat damızlık potansiyeli yüksek.');
     }
 
-    if (qualityScore >= 80) {
+    if (qualityScore >= 82) {
       recs.push('Yüksek kalite skoru. Damızlık adayı olarak değerlendirilebilir.');
-    } else if (qualityScore < 50) {
+    } else if (qualityScore < 48) {
       recs.push('Kalite skoru düşük. Morfometrik olarak standartlardan sapma mevcut.');
     }
 
     if (raceResult.isHybrid) {
       recs.push('Melezleşme belirtileri var. Islah programında dikkatli olunmalı.');
+    }
+
+    if (ciCV > 12) {
+      recs.push('CI varyasyonu yüksek. Koloni içinde heterojenlik mevcut.');
     }
 
     return recs.length ? recs : ['Veriler standart aralıkta. Özel bir uyarı bulunmuyor.'];
