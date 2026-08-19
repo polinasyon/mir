@@ -1,10 +1,9 @@
 /**
  * Friedrich Ruttner & Türkiye Arıcılık Araştırmaları Morfometrik Standartları
- * AI Irk & Ekotip Tanılama Motoru - Bilimsel v2.2
+ * AI Irk & Ekotip Tanılama Motoru - Bilimsel v2.3
  */
 
 export const RUTNER_DATABASE = {
-  // Uluslararası Bilimsel Irklar
   Carnica: {
     name: 'Karniyol (A. m. carnica)',
     ciMin: 2.20, ciMax: 3.10,
@@ -53,8 +52,6 @@ export const RUTNER_DATABASE = {
     pilosity: 0.28,
     color: '#eab308'
   },
-
-  // Türkiye Yerel Ekotipler
   Mugla: {
     name: 'Muğla Ekotipi (A. m. anatolica)',
     ciMin: 2.10, ciMax: 2.50,
@@ -90,17 +87,9 @@ export const RUTNER_DATABASE = {
 };
 
 export class RutnerAIEngine {
-  /**
-   * Çok Parametreli AI Irk ve Ekotip Tanılama
-   * @param {number} ci - Kübital İndeks
-   * @param {string} discoidal - Diskoidal Kayma ("pozitif", "negatif", "nötr")
-   * @param {number} [a4Angle] - A4 Damar Açısı (Opsiyonel)
-   * @param {number} [pilosity] - Tüy Uzunluğu mm (Opsiyonel)
-   */
   static analyzeRace(ci, discoidal, a4Angle = null, pilosity = null) {
     const ciNum = parseFloat(ci);
 
-    // Girdi doğrulama
     if (isNaN(ciNum) || ciNum < 1.0 || ciNum > 4.5) {
       return {
         predictedRace: 'Geçersiz CI değeri',
@@ -114,6 +103,7 @@ export class RutnerAIEngine {
 
     const discRaw = (discoidal || '').toString().toLowerCase().trim();
     let normalizedDisc = discRaw;
+
     if (['pozitif', 'positive', '+'].includes(discRaw)) normalizedDisc = 'pozitif';
     else if (['negatif', 'negative', '-'].includes(discRaw)) normalizedDisc = 'negatif';
     else if (['nötr', 'notr', 'neutral', '0'].includes(discRaw)) normalizedDisc = 'nötr';
@@ -136,7 +126,7 @@ export class RutnerAIEngine {
       const race = RUTNER_DATABASE[key];
       let score = 0;
 
-      // 1. Kübital İndeks (%50)
+      // CI (%50)
       if (ciNum >= race.ciMin && ciNum <= race.ciMax) {
         score += 50;
       } else {
@@ -146,16 +136,16 @@ export class RutnerAIEngine {
         else if (diff <= 0.40) score += 8;
       }
 
-      // 2. Diskoidal Kayma (%30)
+      // Diskoidal (%30)
       if (race.discoidal === 'nötr') {
-        score += (normalizedDisc === 'nötr') ? 30 : 18;
+        score += normalizedDisc === 'nötr' ? 30 : 18;
       } else if (race.discoidal === normalizedDisc) {
         score += 30;
       } else if (normalizedDisc === 'nötr') {
         score += 12;
       }
 
-      // 3. A4 Açısı (%10)
+      // A4 (%10)
       if (a4Angle !== null && !isNaN(parseFloat(a4Angle))) {
         const angleDiff = Math.abs(parseFloat(a4Angle) - race.a4Angle);
         if (angleDiff <= 2.0) score += 10;
@@ -165,7 +155,7 @@ export class RutnerAIEngine {
         score += 5;
       }
 
-      // 4. Tüy Uzunluğu (%10)
+      // Pilosity (%10)
       if (pilosity !== null && !isNaN(parseFloat(pilosity))) {
         const pilDiff = Math.abs(parseFloat(pilosity) - race.pilosity);
         if (pilDiff <= 0.04) score += 10;
