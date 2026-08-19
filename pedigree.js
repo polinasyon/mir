@@ -1,10 +1,12 @@
 import { StorageService } from './storage.js';
 import { CameraService } from './camera.js';
+import { RutnerAIEngine } from './rutnerAI.js';
 
 export class PedigreeModule {
   constructor() {
     this.storage = new StorageService('polinasyon_queens');
     this.camera = null;
+    this.lastAIResult = null;
   }
 
   init() {
@@ -58,7 +60,20 @@ export class PedigreeModule {
       if (metrics) {
         this.elements.ciValue.textContent = metrics.ci;
         this.elements.diValue.textContent = metrics.di;
-        alert(`Analiz Tamamlandı!\nKübital İndeks: ${metrics.ci}\nDiskoidal Kayma: ${metrics.di}`);
+
+        // Rutner AI Analizini Çalıştır
+        const aiResult = RutnerAIEngine.analyzeRace(metrics.ci, metrics.rawDiscoidal);
+        this.lastAIResult = aiResult;
+
+        alert(
+          `🧬 RUTNER AI IRK ANALİZİ SONUCU:\n` +
+          `------------------------------------\n` +
+          `Tespit Edilen Hat: ${aiResult.predictedRace}\n` +
+          `AI Güven Skoru: %${aiResult.confidence}\n` +
+          `Genetik Durum: ${aiResult.isHybrid ? '⚠️ Yüksek Melezleşme / Sapma' : '✅ Saf Kan / Standart Uyumlu'}\n\n` +
+          `Kübital İndeks (CI): ${metrics.ci}\n` +
+          `Diskoidal Kayma: ${metrics.di}`
+        );
       }
     });
 
@@ -83,6 +98,7 @@ export class PedigreeModule {
       ogul: this.elements.qOgul.value,
       ci: this.elements.ciValue.textContent,
       di: this.elements.diValue.textContent,
+      aiRace: this.lastAIResult ? this.lastAIResult.predictedRace : 'Analiz Yapılmadı',
       date: new Date().toLocaleString('tr-TR')
     };
 
@@ -113,9 +129,9 @@ export class PedigreeModule {
           <thead>
             <tr>
               <th>Küpe</th>
-              <th>Irk</th>
-              <th>Aba</th>
-              <th>Baba</th>
+              <th>Beyan Irk</th>
+              <th>Rutner AI Tespiti</th>
+              <th>CI</th>
               <th>Hırçınlık</th>
               <th>Bal</th>
               <th style="text-align:center;">Sil</th>
@@ -129,8 +145,8 @@ export class PedigreeModule {
         <tr>
           <td>${q.id}</td>
           <td>${q.irk}</td>
-          <td>${q.aba || '-'}</td>
-          <td>${q.baba || '-'}</td>
+          <td style="color:#f59e0b; font-weight:bold;">${q.aiRace || '-'}</td>
+          <td>${q.ci || '-'}</td>
           <td>${q.hircinlik}</td>
           <td>${q.bal || '-'}</td>
           <td style="text-align:center;">
