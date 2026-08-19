@@ -17,23 +17,14 @@ export class CameraService {
     this.autoDetectionMode = true;
     this.cvReady = false;
     this.opencvLoading = false;
+
+    // Arka planda yüklemeyi başlat
+    this.ensureOpenCV();
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  OpenCV.js yükleme                                                 */
-  /* ------------------------------------------------------------------ */
-  async ensureOpenCV() {
-    if (this.cvReady) return true;
-    if (this.opencvLoading) {
-      // Zaten yükleniyor, bekle
-      return new Promise((resolve) => {
-        const check = setInterval(() => {
-          if (this.cvReady) {
-            clearInterval(check);
-            resolve(true);
-          }
-        }, 100);
-      });
+  ensureOpenCV() {
+    if (this.cvReady || this.opencvLoading) {
+      return Promise.resolve(this.cvReady);
     }
 
     this.opencvLoading = true;
@@ -49,30 +40,29 @@ export class CameraService {
       const script = document.createElement('script');
       script.src = 'https://docs.opencv.org/4.10.0/opencv.js';
       script.async = true;
+
       script.onload = () => {
-        // OpenCV bazen biraz geç hazır oluyor
-        const wait = setInterval(() => {
+        const check = setInterval(() => {
           if (typeof cv !== 'undefined' && cv.Mat) {
-            clearInterval(wait);
+            clearInterval(check);
             this.cvReady = true;
             this.opencvLoading = false;
-            console.log('OpenCV.js hazır');
+            console.log('[CameraService] OpenCV.js hazır');
             resolve(true);
           }
         }, 50);
       };
+
       script.onerror = () => {
-        console.error('OpenCV.js yüklenemedi');
+        console.warn('[CameraService] OpenCV.js yüklenemedi');
         this.opencvLoading = false;
         resolve(false);
       };
+
       document.head.appendChild(script);
     });
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Kamera kontrol                                                    */
-  /* ------------------------------------------------------------------ */
   async toggle() {
     if (this.stream) {
       this.stop();
@@ -83,7 +73,6 @@ export class CameraService {
 
   async start() {
     try {
-      // OpenCV’yi arka planda yüklemeye başla
       this.ensureOpenCV();
 
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -134,106 +123,65 @@ export class CameraService {
     }
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Capture + Validasyon + Auto-Keypoint                              */
-  /* ------------------------------------------------------------------ */
-  async captureAndValidate() {
-  if (!this.stream) {
-    return { valid: false, reason: 'Kamera kapalı.' };
-  }
+  /**
+   * SENKRON tutuldu → pedigree.js bozulmasın
+   * OpenCV hazırsa otomatik nokta dener
+   */
+  captureAndValidate() {
+    if (!this.stream) {
+      return { valid: false, reason: 'Kamera kapalı.' };
+    }
 
-  // Canvas boyutunu ayarla
-  this.canvas.width = this.video.videoWidth || 640;
-  this.canvas.height = this.video.videoHeight || 480;
+    this.canvas.width = this.video.videoWidth || 640;
+    this.canvas.height = this.video.videoHeight || 480;
+    this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
 
-  // Görüntüyü çiz
-  this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+    const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    const data = imgData.data;
 
-  const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-  const data = imgData.data;
+    let totalVariance = 0;
+    let pixelCount = 0;
+    for (let i = 0; i < data.length; i += 16) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
+      totalVariance += Math.abs(avg - nextAvg);
+      pixelCount++;
+    }
 
-  // --- Kontrast / doku kontrolü ---
-  let totalVariance = 0;
-  let pixelCount = 0;
+    const contrastScore = totalVariance / (pixelCount || 1);
 
-  // Her 4 pikselde bir örnekle (hız + yeterlilik dengesi)
-  for (let i = 0; i < data.length; i += 16) {
-    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
-    totalVariance += Math.abs(avg - nextAvg);
-    pixelCount++;
-  }
+    if (contrastScore < 6.5) {
+      return {
+        valid: false,
+        reason: '⚠️ Görüntüde kanat damarı/dokusu tespit edilemedi. Lütfen net bir kanat fotoğrafı çekin.'
+      };
+    }
 
-  const contrastScore = totalVariance / (pixelCount || 1);
+    this.capturedImageData = imgData;
+    this.video.style.display = 'none';
+    this.canvas.style.display = 'block';
+    this.points = [];
 
-  if (contrastScore < 6.5) {
-    return {
-      valid: false,
-      reason: '⚠️ Görüntüde kanat damarı/dokusu tespit edilemedi. Lütfen net bir kanat fotoğrafı çekin.'
-    };
-  }
-
-  // Görüntüyü kaydet ve arayüzü güncelle
-  this.capturedImageData = imgData;
-  this.video.style.display = 'none';
-  this.canvas.style.display = 'block';
-  this.points = [];
-
-  // --- Otomatik Keypoint Tespiti ---
-  if (this.autoDetectionMode) {
-    try {
-      const ready = await this.ensureOpenCV();
-
-      if (ready) {
+    // OpenCV hazırsa otomatik tespit (senkron)
+    if (this.autoDetectionMode && this.cvReady) {
+      try {
         const detected = this.detectWingKeypoints(imgData);
-
         if (detected && detected.length === 3) {
           this.points = detected;
           this.redrawCanvas();
-
           const metrics = this.calculateMetrics();
           if (metrics) {
-            return {
-              valid: true,
-              autoDetected: true,
-              metrics
-            };
+            return { valid: true, autoDetected: true, metrics };
           }
         }
-      }
-    } catch (err) {
-      console.warn('Otomatik keypoint tespiti başarısız:', err);
-      // Hata olsa bile manuel moda düşüyoruz
-    }
-  }
-
-  // Otomatik tespit yapılamadı → manuel seçim için hazır
-  return {
-    valid: true,
-    autoDetected: false
-  };
-}
-
-    // OpenCV hazırsa otomatik tespit dene
-    if (this.autoDetectionMode) {
-      const ready = await this.ensureOpenCV();
-      if (ready) {
-        const detected = this.detectWingKeypoints(imgData);
-        if (detected && detected.length === 3) {
-          this.points = detected;
-          this.redrawCanvas();
-          const metrics = this.calculateMetrics();
-          return { valid: true, autoDetected: true, metrics };
-        }
+      } catch (err) {
+        console.warn('Otomatik keypoint hatası:', err);
       }
     }
 
     return { valid: true, autoDetected: false };
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  OpenCV tabanlı Keypoint Motoru                                    */
-  /* ------------------------------------------------------------------ */
   detectWingKeypoints(imgData) {
     if (!this.cvReady) return null;
 
@@ -246,59 +194,40 @@ export class CameraService {
       blurred = new cv.Mat();
       cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
 
-      // Kenar tespiti (damarlar için çok iyi)
       edges = new cv.Mat();
       cv.Canny(blurred, edges, 40, 120);
 
-      // İyi köşe / özellik noktaları
       corners = new cv.Mat();
-      // maxCorners, qualityLevel, minDistance
-      cv.goodFeaturesToTrack(gray, corners, 40, 0.01, 20, edges);
+      cv.goodFeaturesToTrack(gray, corners, 40, 0.01, 18, edges);
 
-      if (corners.rows < 3) {
-        return null;
-      }
+      if (corners.rows < 3) return null;
 
-      // Noktaları diziye çevir
       const candidates = [];
       for (let i = 0; i < corners.rows; i++) {
-        const x = corners.data32F[i * 2];
-        const y = corners.data32F[i * 2 + 1];
-        candidates.push({ x, y });
+        candidates.push({
+          x: corners.data32F[i * 2],
+          y: corners.data32F[i * 2 + 1]
+        });
       }
 
-      // En iyi 3 noktayı seç (geometrik olarak anlamlı üçgen)
       return this.selectBestTriangle(candidates, imgData.width, imgData.height);
     } catch (err) {
       console.error('OpenCV keypoint hatası:', err);
       return null;
     } finally {
-      // Bellek sızıntısını önle
-      src?.delete();
-      gray?.delete();
-      blurred?.delete();
-      edges?.delete();
-      corners?.delete();
+      if (src) src.delete();
+      if (gray) gray.delete();
+      if (blurred) blurred.delete();
+      if (edges) edges.delete();
+      if (corners) corners.delete();
     }
   }
 
-  /**
-   * Aday noktalardan en iyi A-B-C üçgenini seçer
-   * - Noktalar birbirinden yeterince uzak olsun
-   * - Üçgen alanı mümkün olduğunca büyük olsun
-   * - Sol → Orta → Sağ sıralaması tercih edilir
-   */
   selectBestTriangle(candidates, width, height) {
     if (candidates.length < 3) return null;
 
-    // En uç noktaları önceliklendir
-    candidates.sort((a, b) => a.x - b.x); // sola göre sırala
+    candidates.sort((a, b) => a.x - b.x);
 
-    let best = null;
-    let bestScore = -1;
-
-    // Basit ama etkili: kombinasyon yerine akıllı seçim
-    // 1. En sol, 2. en sağ, 3. en uzak orta nokta
     const left = candidates[0];
     const right = candidates[candidates.length - 1];
 
@@ -307,7 +236,6 @@ export class CameraService {
 
     for (const p of candidates) {
       if (p === left || p === right) continue;
-      // Noktanın AB çizgisine olan uzaklığı
       const dist = this.pointLineDistance(p, left, right);
       if (dist > maxDist) {
         maxDist = dist;
@@ -315,8 +243,7 @@ export class CameraService {
       }
     }
 
-    if (!bestMid || maxDist < height * 0.04) {
-      // Yeterince iyi üçgen yoksa en yüksek skorlu 3 noktayı al
+    if (!bestMid || maxDist < height * 0.035) {
       return [
         candidates[0],
         candidates[Math.floor(candidates.length / 2)],
@@ -324,7 +251,6 @@ export class CameraService {
       ];
     }
 
-    // A = sol, B = orta, C = sağ olacak şekilde sırala
     return [left, bestMid, right];
   }
 
@@ -354,19 +280,9 @@ export class CameraService {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Manuel nokta ekleme                                               */
-  /* ------------------------------------------------------------------ */
-  addPoint(clientX, clientY) {
-    // CSS scale düzeltmesi
-    const rect = this.canvas.getBoundingClientRect();
-    const scaleX = this.canvas.width / rect.width;
-    const scaleY = this.canvas.height / rect.height;
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
-
+  addPoint(x, y) {
     if (this.points.length >= 3) {
-      this.points = []; // yeniden seçmeye izin ver
+      this.points = [];
     }
 
     this.points.push({ x, y });
@@ -378,9 +294,6 @@ export class CameraService {
     return null;
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Çizim                                                             */
-  /* ------------------------------------------------------------------ */
   redrawCanvas() {
     if (this.capturedImageData) {
       this.ctx.putImageData(this.capturedImageData, 0, 0);
@@ -420,14 +333,10 @@ export class CameraService {
     this.ctx.stroke();
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Metrikler                                                         */
-  /* ------------------------------------------------------------------ */
   calculateMetrics() {
     if (this.points.length < 3) return null;
 
     const [pA, pB, pC] = this.points;
-
     const distAB = Math.hypot(pB.x - pA.x, pB.y - pA.y);
     const distBC = Math.hypot(pC.x - pB.x, pC.y - pB.y);
 
@@ -436,8 +345,6 @@ export class CameraService {
     const ci = (distAB / distBC).toFixed(2);
 
     const deltaX = pC.x - pB.x;
-    const deltaY = pC.y - pB.y;
-
     let rawDiscoidal = 'nötr';
     if (Math.abs(deltaX) > 8) {
       rawDiscoidal = deltaX > 0 ? 'pozitif' : 'negatif';
@@ -446,12 +353,6 @@ export class CameraService {
     const diVal = (Math.abs(deltaX) / 10).toFixed(1);
     const di = `${rawDiscoidal.charAt(0).toUpperCase() + rawDiscoidal.slice(1)} (±${diVal})`;
 
-    return {
-      ci,
-      di,
-      rawDiscoidal,
-      // ekstra bilgi istersen
-      angle: Math.atan2(deltaY, deltaX) * (180 / Math.PI)
-    };
+    return { ci, di, rawDiscoidal };
   }
 }
