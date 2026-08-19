@@ -1,6 +1,5 @@
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
@@ -17,23 +16,24 @@ class App {
     };
 
     this.modules = {
-      pedigree: null,
-      breeding: null,
-      nektar: null
+      pedigree: new PedigreeModule(),
+      breeding: new BreedingModule()
     };
   }
 
   init() {
-    // 1. ÖNCE MENÜ BUTONLARINI GARANTİYE AL (Asla kilitlenemez)
+    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      const handleNav = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const target = e.currentTarget.dataset.target;
         if (target) {
           this.openPanel(target);
         }
-      });
+      };
+
+      btn.addEventListener('click', handleNav);
     });
 
     if (this.menuToggle) {
@@ -52,29 +52,17 @@ class App {
       });
     }
 
-    // 2. MODÜLLERİ ARKA PLANDA ASENKRON BAŞLAT (Butonları asla bloke etmez)
-    setTimeout(() => {
-      try {
-        this.modules.pedigree = new PedigreeModule();
-        this.modules.pedigree.init();
-      } catch (err) {
-        console.warn('Pedigree modül hatası:', err);
-      }
+    try {
+      this.modules.pedigree.init();
+    } catch (err) {
+      console.error('Pedigree Module başlatma hatası:', err);
+    }
 
-      try {
-        this.modules.breeding = new BreedingModule();
-        this.modules.breeding.init();
-      } catch (err) {
-        console.warn('Breeding modül hatası:', err);
-      }
-
-      try {
-        this.modules.nektar = new NektarModule();
-        this.modules.nektar.init();
-      } catch (err) {
-        console.warn('Nektar modül hatası:', err);
-      }
-    }, 50);
+    try {
+      this.modules.breeding.init();
+    } catch (err) {
+      console.error('Breeding Module başlatma hatası:', err);
+    }
   }
 
   toggleOverlay() {
@@ -96,8 +84,8 @@ class App {
     if (this.panels[target]) {
       this.panels[target].classList.add('active');
 
-      if (target === 'health' && this.modules.breeding) {
-        if (typeof this.modules.breeding.renderTable === 'function') {
+      if (target === 'health') {
+        if (this.modules.breeding && typeof this.modules.breeding.renderTable === 'function') {
           this.modules.breeding.renderTable();
         }
       }
