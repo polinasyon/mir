@@ -1,6 +1,6 @@
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
-import { NektarModule } from './nektar.js';
+// NektarModule artık global olarak yüklendiği için import etmeye gerek yok
 
 class App {
   constructor() {
@@ -19,12 +19,11 @@ class App {
     this.modules = {
       pedigree: new PedigreeModule(),
       breeding: new BreedingModule(),
-      nektar: new NektarModule()
+      nektar: new window.NektarModule()
     };
   }
 
   init() {
-    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         e.preventDefault();
@@ -34,7 +33,6 @@ class App {
           this.openPanel(target);
         }
       };
-
       btn.addEventListener('click', handleNav);
     });
 
