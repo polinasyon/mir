@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Polinasyon — Çevrimdışı Arıcılık & Islah Yönetimi</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="min-h-screen pb-28" style="background:var(--dark-1, #111827); color:#fff;">
 
   <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster">
     <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke-width="2" stroke-linecap="round" stroke="currentColor" fill="none"/></svg>
@@ -24,7 +26,7 @@
       </div>
 
       <button class="menu-btn" data-target="nektar">
-        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg><span class="accent">Nektar Akım Skoru</span></span>
+        <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg><span class="accent">Nektar Akım Skoru & GDD</span></span>
         <span>Canlı</span>
       </button>
 
@@ -50,16 +52,92 @@
     </div>
   </div>
 
-  <!-- Diğer Paneller -->
-  <div class="content-panel" id="nektarPanel"><div class="panel-container"><h2>Nektar Akımı</h2></div></div>
-  <div class="content-panel" id="hivePanel"><div class="panel-container"><h2>Kovan Kayıt</h2></div></div>
+  <!-- 1. NEKTAR AKIM PANELİ -->
+  <div class="content-panel active" id="nektarPanel">
+    <div class="panel-container">
+      <div class="soft-card p-6 sm:p-8" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-800 pb-4">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">📍</div>
+            <div class="overflow-hidden">
+              <h2 id="havaLokasyon" class="text-base sm:text-lg font-bold text-white tracking-tight truncate">Ankara</h2>
+              <p id="bolgeFloraHaritasi" class="text-[11px] text-amber-400 font-semibold truncate">Flora: Bölge Analizi Aktif</p>
+            </div>
+          </div>
+        </div>
 
-  <!-- 1. PEDIGREE PANELİ (Sadece Kamera ve Morfometrik Analiz) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">SICAKLIK</p>
+            <p id="havaSicaklik" class="text-2xl font-bold text-amber-400 mt-1">--°C</p>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">BAĞIL NEM</p>
+            <p id="havaNem" class="text-2xl font-bold text-amber-400 mt-1">--%</p>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ÇİY NOKTASI</p>
+            <p id="havaCiy" class="text-2xl font-bold text-amber-400 mt-1">--°C</p>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">RÜZGAR</p>
+            <p id="havaRuzgar" class="text-2xl font-bold text-amber-400 mt-1">--</p>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">YAĞIŞ</p>
+            <p id="havaYagis" class="text-2xl font-bold text-amber-400 mt-1">--</p>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 text-center text-white">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">BULUT</p>
+            <p id="havaBulut" class="text-2xl font-bold text-amber-400 mt-1">--%</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 mb-6">
+          <div class="flex justify-between items-end mb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Nektar Akım Potansiyeli</h2>
+              <div class="mt-1 flex items-center gap-2">
+                <span id="nektarDurumEtiketi" class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400">AKTİF HESAPLAMA</span>
+              </div>
+            </div>
+            <div id="nektarSkor" class="text-3xl font-black text-amber-400">%--</div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 flex items-center gap-2.5">
+              <div>
+                <p class="text-[9px] font-bold text-slate-400 tracking-wider">GDD BİRİKİMİ</p>
+                <p id="uiFenoloji" class="text-xs font-bold text-emerald-400">Hesaplanıyor...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full bg-slate-800 rounded-full h-3 mb-4 overflow-hidden">
+            <div id="nektarBar" class="bg-amber-400 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+          </div>
+          <p id="nektarAciklama" class="text-sm text-slate-400">Meteorolojik veriler ve GDD modelleri işleniyor...</p>
+        </div>
+
+        <div class="border border-slate-800 bg-slate-900/60 rounded-2xl p-5 space-y-4">
+          <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2">📅 Bölgesel Flora Takvimi</h3>
+          <div id="floraTimelineContainer" class="space-y-2.5"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. KOVAN KAYIT PANELİ -->
+  <div class="content-panel" id="hivePanel">
+    <div class="panel-container"><h2>Kovan Kayıt</h2></div>
+  </div>
+
+  <!-- 3. MORFOMETRİ (PEDIGREE) PANELİ -->
   <div class="content-panel" id="pedigreePanel">
     <div class="panel-container">
       <h2>Morfometrik Kanat Analizi</h2>
       <p style="color:var(--muted); margin-top:-10px;">Kamera ile kubital indeks ve diskoidal kayma ölçümü.</p>
-      
+
       <div class="section-box">
         <h3>3. Morfometrik Analiz (Kovan Örneklemi)</h3>
         
@@ -104,13 +182,12 @@
     </div>
   </div>
 
-  <!-- 2. HEALTH PANELİ (Damızlık Formu ve Kayıt Tablosu Burada) -->
+  <!-- 4. DAMIZLIK & ISLAH (HEALTH) PANELİ -->
   <div class="content-panel" id="healthPanel">
     <div class="panel-container">
       <h2>Damızlık Islah ve Kayıt Paneli</h2>
       <p style="color:var(--muted); margin-top:-10px;">Ana arı kayıtları, aba hattı, baba hattı, hırçınlık ve bal verimi yönetimi.</p>
       
-      <!-- 1. Kimlik -->
       <div class="section-box">
         <h3>1. Ana Arı Kimlik & Soy Hatları</h3>
         <div class="form-grid">
@@ -128,7 +205,6 @@
         </div>
       </div>
 
-      <!-- 2. Performans -->
       <div class="section-box">
         <h3>2. Performans, Hırçınlık & Bal Verimi</h3>
         <div class="form-grid">
@@ -159,7 +235,6 @@
         </button>
       </div>
 
-      <!-- 4. Kayıtlar Tablosu -->
       <div class="section-box">
         <h3>4. Damızlık Popülasyon & Takip Edilen Hatlar</h3>
         <div id="pedigreeTableContainer">
@@ -169,6 +244,7 @@
     </div>
   </div>
 
+  <!-- 5. AKADEMİ PANELİ -->
   <div class="content-panel" id="akademiPanel">
     <div class="panel-container"><h2>Akademi</h2></div>
   </div>
