@@ -82,7 +82,11 @@ export class PedigreeModule {
         this.elements.diValue.textContent = '-';
         this.currentMetrics = null;
         
-        if (this.elements.addSampleBtn) this.elements.addSampleBtn.disabled = true;
+        if (this.elements.addSampleBtn) {
+          this.elements.addSampleBtn.disabled = true;
+          this.elements.addSampleBtn.style.opacity = '0.6';
+          this.elements.addSampleBtn.style.cursor = 'not-allowed';
+        }
         
         this.elements.videoElement.style.display = 'block';
         this.elements.canvasElement.style.display = 'none';
@@ -132,6 +136,8 @@ export class PedigreeModule {
 
         if (this.elements.addSampleBtn) {
           this.elements.addSampleBtn.disabled = false;
+          this.elements.addSampleBtn.style.opacity = '1';
+          this.elements.addSampleBtn.style.cursor = 'pointer';
         }
       }
 
@@ -172,7 +178,10 @@ export class PedigreeModule {
         this.elements.diValue.textContent = '-';
         if (this.elements.a4DistA) this.elements.a4DistA.value = '';
         if (this.elements.a4DistB) this.elements.a4DistB.value = '';
+        
         this.elements.addSampleBtn.disabled = true;
+        this.elements.addSampleBtn.style.opacity = '0.6';
+        this.elements.addSampleBtn.style.cursor = 'not-allowed';
         
         this.elements.canvasElement.style.display = 'none';
         this.elements.videoElement.style.display = 'block';
@@ -221,6 +230,8 @@ export class PedigreeModule {
 
     if (this.elements.analyzeColonyBtn) {
       this.elements.analyzeColonyBtn.disabled = false;
+      this.elements.analyzeColonyBtn.style.opacity = '1';
+      this.elements.analyzeColonyBtn.style.cursor = 'pointer';
     }
   }
 
@@ -262,8 +273,18 @@ export class PedigreeModule {
     if (this.elements.sampleList) {
       this.elements.sampleList.innerHTML = '<li id="emptyListText" style="padding:12px; text-align:center; color:#9ca3af;">Henüz ölçüm eklenmedi. (Hedef: 10-15 Arı)</li>';
     }
-    if (this.elements.analyzeColonyBtn) this.elements.analyzeColonyBtn.disabled = true;
-    if (this.elements.addSampleBtn) this.elements.addSampleBtn.disabled = true;
+    
+    if (this.elements.analyzeColonyBtn) {
+      this.elements.analyzeColonyBtn.disabled = true;
+      this.elements.analyzeColonyBtn.style.opacity = '0.6';
+      this.elements.analyzeColonyBtn.style.cursor = 'not-allowed';
+    }
+    
+    if (this.elements.addSampleBtn) {
+      this.elements.addSampleBtn.disabled = true;
+      this.elements.addSampleBtn.style.opacity = '0.6';
+      this.elements.addSampleBtn.style.cursor = 'not-allowed';
+    }
     
     this.renderTable();
   }
