@@ -83,10 +83,7 @@ body {
   border-radius: 16px;
 }
 
-@keyframes livePulse {
-  0% { transform: scale(1); box-shadow: 0 12px 36px rgba(2, 6, 23, 0.6); }
-  50% { transform: scale(1.02); box-shadow: 0 16px 44px rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.5); }
-  100% { transform: scale(1); box-shadow: 0 12px 36px rgba(2, 6, 23, 0.6); }
+ scale(1); box-shadow: 0 12px 36px rgba(2, 6, 23, 0.6); }
 }
 
 .menu-btn {
