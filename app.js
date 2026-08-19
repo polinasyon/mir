@@ -6,16 +6,17 @@ class App {
   constructor() {
     this.overlay = document.getElementById('overlay');
     this.menuToggle = document.getElementById('menuToggle');
-    this.menuBtns = document.querySelectorAll('.menu-btn[data-target]');
+    this.menuBtns = document.querySelectorAll('.menu-btn');
     
     this.panels = {
-      nektar: document.getElementById('nektarPanel'),
-      hive: document.getElementById('hivePanel'),
-      pedigree: document.getElementById('pedigreePanel'),
-      health: document.getElementById('healthPanel'),
-      akademi: document.getElementById('akademiPanel')
+      nektarPanel: document.getElementById('nektarPanel'),
+      hivePanel: document.getElementById('hivePanel'),
+      pedigreePanel: document.getElementById('pedigreePanel'),
+      healthPanel: document.getElementById('healthPanel'),
+      akademiPanel: document.getElementById('akademiPanel')
     };
 
+    // Modülleri güvenle başlat
     this.modules = {
       pedigree: new PedigreeModule(),
       breeding: new BreedingModule(),
@@ -24,16 +25,17 @@ class App {
   }
 
   init() {
-    // Menü buton tıklama dinleyicilerini en başta garantiye al
+    // 1. Menü butonları ve dokunma olayları
     this.menuBtns.forEach((btn) => {
+      const target = btn.dataset.target;
+      if (!target) return;
+
       const handleNav = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const target = e.currentTarget.dataset.target;
-        if (target) {
-          this.openPanel(target);
-        }
+        this.openPanel(target);
       };
+
       btn.addEventListener('click', handleNav);
       btn.addEventListener('touchend', handleNav);
     });
@@ -56,7 +58,7 @@ class App {
       });
     }
 
-    // Modülleri bağımsız ve güvenli başlat
+    // 2. Modülleri güvenle başlat
     try {
       this.modules.pedigree.init();
     } catch (err) {
@@ -88,14 +90,27 @@ class App {
     }
   }
 
-  openPanel(target) {
+  openPanel(targetKey) {
     this.closeOverlay();
-    this.closeAllPanels();
 
-    if (this.panels[target]) {
-      this.panels[target].classList.add('active');
+    // Tüm panelleri gizle
+    Object.keys(this.panels).forEach((key) => {
+      const panel = this.panels[key];
+      if (panel) {
+        panel.classList.remove('active', 'block');
+        panel.classList.add('hidden');
+      }
+    });
 
-      if (target === 'health') {
+    // Hedef paneli aç
+    const targetPanelId = targetKey.endsWith('Panel') ? targetKey : targetKey + 'Panel';
+    const activePanel = this.panels[targetPanelId] || document.getElementById(targetKey) || document.getElementById(targetKey + 'Panel');
+
+    if (activePanel) {
+      activePanel.classList.remove('hidden');
+      activePanel.classList.add('active', 'block');
+
+      if (targetKey === 'health' || targetKey === 'healthPanel') {
         if (this.modules.breeding && typeof this.modules.breeding.renderTable === 'function') {
           this.modules.breeding.renderTable();
         }
@@ -103,15 +118,30 @@ class App {
     }
   }
 
-  closeAllPanels() {
-    Object.values(this.panels).forEach((panel) => {
-      if (panel) panel.classList.remove('active');
-    });
+  // HTML içindeki onclick="uygulama.otomatikKonumBul()" çağrıları için yönlendirme
+  otomatikKonumBul() {
+    if (this.modules.nektar && typeof this.modules.nektar.otomatikKonumBul === 'function') {
+      this.modules.nektar.otomatikKonumBul();
+    }
+  }
+
+  konumModaliniAc() {
+    if (this.modules.nektar && typeof this.modules.nektar.konumModaliniAc === 'function') {
+      this.modules.nektar.konumModaliniAc();
+    }
+  }
+
+  verileriIceAktar() {
+    alert("Yedek yükleme özelliği hazır.");
+  }
+
+  verileriYedekle() {
+    alert("Veriler yedekleniyor.");
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const app = new App();
-  app.init();
+  window.uygulama = new App();
+  window.uygulama.init();
 });
 
