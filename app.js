@@ -6,7 +6,7 @@ class App {
   constructor() {
     this.overlay = document.getElementById('overlay');
     this.menuToggle = document.getElementById('menuToggle');
-    this.menuBtns = document.querySelectorAll('.menu-btn[data-target]');
+    this.menuBtns = document.querySelectorAll('.menu-btn');
     
     this.panels = {
       nektar: document.getElementById('nektarPanel'),
@@ -24,16 +24,17 @@ class App {
   }
 
   init() {
-    // Menü buton tıklama dinleyicileri
+    // Menü butonları için tıklama ve dokunma olaylarını garantiye al
     this.menuBtns.forEach((btn) => {
+      const target = btn.dataset.target;
+      if (!target) return; // 'disabled-brand' gibi hedefini olmayanları atla
+
       const handleNav = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const target = e.currentTarget.dataset.target;
-        if (target) {
-          this.openPanel(target);
-        }
+        this.openPanel(target);
       };
+
       btn.addEventListener('click', handleNav);
       btn.addEventListener('touchend', handleNav);
     });
@@ -56,7 +57,7 @@ class App {
       });
     }
 
-    // Modülleri doğrudan ve güvenle başlat
+    // Modülleri güvenle başlat
     try {
       this.modules.pedigree.init();
     } catch (err) {
