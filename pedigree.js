@@ -17,7 +17,12 @@ export class PedigreeModule {
     this.initCamera();
     this.bindEvents();
     this.renderTable();
-  }
+  // init() metodunun en sonuna ekleyin
+if (this.elements.addSampleBtn) {
+  this.elements.addSampleBtn.disabled = true;
+  this.elements.addSampleBtn.style.opacity = '0.5';
+  this.elements.addSampleBtn.style.cursor = 'not-allowed';
+}
 
   bindDOM() {
     this.elements = {
