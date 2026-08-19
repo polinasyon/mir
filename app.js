@@ -1,5 +1,6 @@
 import { PedigreeModule } from './pedigree.js';
 import { BreedingModule } from './breeding.js';
+import { NektarModule } from './nektar.js';
 
 class App {
   constructor() {
@@ -17,12 +18,13 @@ class App {
 
     this.modules = {
       pedigree: new PedigreeModule(),
-      breeding: new BreedingModule()
+      breeding: new BreedingModule(),
+      nektar: new NektarModule()
     };
   }
 
   init() {
-    // Opera ve Mobil uyumlu buton tıklama dinleyicileri
+    // Menü buton tıklama dinleyicilerini en başta garantiye al
     this.menuBtns.forEach((btn) => {
       const handleNav = (e) => {
         e.preventDefault();
@@ -32,16 +34,18 @@ class App {
           this.openPanel(target);
         }
       };
-
       btn.addEventListener('click', handleNav);
+      btn.addEventListener('touchend', handleNav);
     });
 
     if (this.menuToggle) {
-      this.menuToggle.addEventListener('click', (e) => {
+      const toggleMenu = (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.toggleOverlay();
-      });
+      };
+      this.menuToggle.addEventListener('click', toggleMenu);
+      this.menuToggle.addEventListener('touchend', toggleMenu);
     }
 
     if (this.overlay) {
@@ -52,16 +56,23 @@ class App {
       });
     }
 
+    // Modülleri bağımsız ve güvenli başlat
     try {
       this.modules.pedigree.init();
     } catch (err) {
-      console.error('Pedigree Module başlatma hatası:', err);
+      console.warn('Pedigree modül hatası:', err);
     }
 
     try {
       this.modules.breeding.init();
     } catch (err) {
-      console.error('Breeding Module başlatma hatası:', err);
+      console.warn('Breeding modül hatası:', err);
+    }
+
+    try {
+      this.modules.nektar.init();
+    } catch (err) {
+      console.warn('Nektar modül hatası:', err);
     }
   }
 
