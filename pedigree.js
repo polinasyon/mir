@@ -1,8 +1,10 @@
+import { StorageService } from './storage.js';
 import { CameraService } from './camera.js';
 import { RutnerAIEngine } from './rutnerAI.js';
 
 export class PedigreeModule {
   constructor() {
+    this.storage = new StorageService('polinasyon_queens');
     this.camera = null;
     this.lastAIResult = null;
     
@@ -14,6 +16,7 @@ export class PedigreeModule {
     this.bindDOM();
     this.initCamera();
     this.bindEvents();
+    this.renderTable();
 
     if (this.elements.addSampleBtn) {
       this.elements.addSampleBtn.disabled = true;
@@ -24,6 +27,17 @@ export class PedigreeModule {
 
   bindDOM() {
     this.elements = {
+      qId: document.getElementById('qId'),
+      qIrk: document.getElementById('qIrk'),
+      qAba: document.getElementById('qAba'),
+      qBaba: document.getElementById('qBaba'),
+      qHircinlik: document.getElementById('qHircinlik'),
+      qBal: document.getElementById('qBal'),
+      qVsh: document.getElementById('qVsh'),
+      qOgul: document.getElementById('qOgul'),
+      saveBtn: document.getElementById('saveBtn'),
+      tableContainer: document.getElementById('pedigreeTableContainer'),
+      
       ciValue: document.getElementById('ciValue'),
       diValue: document.getElementById('diValue'),
       startCamBtn: document.getElementById('startCamBtn'),
@@ -50,74 +64,78 @@ export class PedigreeModule {
   }
 
   bindEvents() {
-    if (this.elements.startCamBtn) {
-      this.elements.startCamBtn.addEventListener('click', async () => {
-        const active = await this.camera.toggle();
-        this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
-        this.elements.startCamBtn.className = active ? 'btn-secondary' : 'btn-primary';
-        this.elements.captureBtn.disabled = !active;
+    this.elements.saveBtn.addEventListener('click', () => this.handleSave());
+
+    // Kamerayı aç/kapat
+    this.elements.startCamBtn.addEventListener('click', async () => {
+      const active = await this.camera.toggle();
+      this.elements.startCamBtn.textContent = active ? 'Kamerayı Kapat' : 'Kamerayı Aç';
+      this.elements.startCamBtn.className = active ? 'btn-secondary' : 'btn-primary';
+      this.elements.captureBtn.disabled = !active;
+      
+      if (active) {
+        this.elements.captureBtn.textContent = 'Fotoğraf Çek';
+        this.elements.captureBtn.classList.remove('btn-secondary');
+        this.elements.captureBtn.classList.add('btn-primary');
+      }
+    });
+
+    // Fotoğraf çek / iptal
+    this.elements.captureBtn.addEventListener('click', () => {
+      // İptal / Yeniden çek
+      if (this.elements.captureBtn.textContent === 'İptal / Yeniden Çek') {
+        this.camera.resetPoints();
+        this.elements.captureBtn.textContent = 'Fotoğraf Çek';
+        this.elements.captureBtn.classList.replace('btn-secondary', 'btn-primary');
+        this.elements.ciValue.textContent = '-';
+        this.elements.diValue.textContent = '-';
+        this.currentMetrics = null;
         
-        if (active) {
-          this.elements.captureBtn.textContent = 'Fotoğraf Çek';
-          this.elements.captureBtn.classList.remove('btn-secondary');
-          this.elements.captureBtn.classList.add('btn-primary');
+        if (this.elements.addSampleBtn) {
+          this.elements.addSampleBtn.disabled = true;
+          this.elements.addSampleBtn.style.opacity = '0.5';
+          this.elements.addSampleBtn.style.cursor = 'not-allowed';
         }
-      });
-    }
+        
+        this.elements.videoElement.style.display = 'block';
+        this.elements.canvasElement.style.display = 'none';
+        return;
+      }
 
-    if (this.elements.captureBtn) {
-      this.elements.captureBtn.addEventListener('click', () => {
-        if (this.elements.captureBtn.textContent === 'İptal / Yeniden Çek') {
-          this.camera.resetPoints();
-          this.elements.captureBtn.textContent = 'Fotoğraf Çek';
-          this.elements.captureBtn.classList.replace('btn-secondary', 'btn-primary');
-          this.elements.ciValue.textContent = '-';
-          this.elements.diValue.textContent = '-';
-          this.currentMetrics = null;
-          
-          if (this.elements.addSampleBtn) {
-            this.elements.addSampleBtn.disabled = true;
-            this.elements.addSampleBtn.style.opacity = '0.5';
-            this.elements.addSampleBtn.style.cursor = 'not-allowed';
-          }
-          
-          this.elements.videoElement.style.display = 'block';
-          this.elements.canvasElement.style.display = 'none';
-          return;
+      // Yeni fotoğraf çek
+      const validation = this.camera.captureAndValidate();
+      if (!validation.valid) {
+        alert(validation.reason);
+        return;
+      }
+
+      this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
+      this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
+
+      // Otomatik tespit başarılıysa
+      if (validation.autoDetected && validation.metrics) {
+        this.currentMetrics = validation.metrics;
+        this.elements.ciValue.textContent = validation.metrics.ci;
+        this.elements.diValue.textContent = validation.metrics.di;
+
+        if (this.elements.addSampleBtn) {
+          this.elements.addSampleBtn.disabled = false;
+          this.elements.addSampleBtn.style.opacity = '1';
+          this.elements.addSampleBtn.style.cursor = 'pointer';
         }
+      } else {
+        // Manuel nokta seçimi
+        alert(
+          '✅ Kanat Dokusu Algılandı!\n\n' +
+          'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
+          '1. Nokta: A Noktası (Ana Damar Başı)\n' +
+          '2. Nokta: B Noktası (Kübital Kesişim)\n' +
+          '3. Nokta: C Noktası (Alt Damar Bitişi)'
+        );
+      }
+    });
 
-        const validation = this.camera.captureAndValidate();
-        if (!validation.valid) {
-          alert(validation.reason);
-          return;
-        }
-
-        this.elements.captureBtn.textContent = 'İptal / Yeniden Çek';
-        this.elements.captureBtn.classList.replace('btn-primary', 'btn-secondary');
-
-        if (validation.autoDetected && validation.metrics) {
-          this.currentMetrics = validation.metrics;
-          this.elements.ciValue.textContent = validation.metrics.ci;
-          this.elements.diValue.textContent = validation.metrics.di;
-
-          if (this.elements.addSampleBtn) {
-            this.elements.addSampleBtn.disabled = false;
-            this.elements.addSampleBtn.style.opacity = '1';
-            this.elements.addSampleBtn.style.cursor = 'pointer';
-          }
-        } else {
-          alert(
-            '✅ Kanat Dokusu Algılandı!\n\n' +
-            'Şimdi kanat üzerindeki damar kesişim noktalarına sırasıyla DOKUNUN:\n' +
-            '1. Nokta: A Noktası (Ana Damar Başı)\n' +
-            '2. Nokta: B Noktası (Kübital Kesişim)\n' +
-            '3. Nokta: C Noktası (Alt Damar Bitişi)'
-          );
-        }
-      });
-    }
-
-    // Canvas tıklama (nokta seçme)
+    // Canvas tıklama / dokunma (sadece bir kere ekleniyor)
     let isProcessing = false;
     const handleCanvasInteraction = (e) => {
       if (e.cancelable) e.preventDefault();
@@ -151,15 +169,13 @@ export class PedigreeModule {
       setTimeout(() => { isProcessing = false; }, 200);
     };
 
-    if (this.elements.canvasElement) {
-      if (window.PointerEvent) {
-        this.elements.canvasElement.addEventListener('pointerdown', handleCanvasInteraction);
-      } else {
-        this.elements.canvasElement.addEventListener('click', handleCanvasInteraction);
-      }
+    if (window.PointerEvent) {
+      this.elements.canvasElement.addEventListener('pointerdown', handleCanvasInteraction);
+    } else {
+      this.elements.canvasElement.addEventListener('click', handleCanvasInteraction);
     }
 
-    // Arıyı Örnekleme Ekle
+    // Örnek ekle
     if (this.elements.addSampleBtn) {
       this.elements.addSampleBtn.addEventListener('click', () => {
         if (!this.currentMetrics) return;
@@ -200,7 +216,7 @@ export class PedigreeModule {
       });
     }
 
-    // Kovan Analiz
+    // Koloni analizi
     if (this.elements.analyzeColonyBtn) {
       this.elements.analyzeColonyBtn.addEventListener('click', () => {
         if (this.colonySamples.length === 0) return;
@@ -217,6 +233,8 @@ export class PedigreeModule {
         );
       });
     }
+
+    window.deleteQueen = (id) => this.handleDelete(id);
   }
 
   updateSampleListUI() {
@@ -243,5 +261,113 @@ export class PedigreeModule {
       this.elements.analyzeColonyBtn.style.cursor = 'pointer';
     }
   }
-}
 
+  handleSave() {
+    const id = this.elements.qId.value.trim();
+    if (!id) {
+      alert('Küpe / Numara zorunludur!');
+      return;
+    }
+
+    let finalCI = this.elements.ciValue.textContent;
+    let finalDI = this.elements.diValue.textContent;
+
+    if (this.colonySamples.length > 0) {
+      const avgCI = (this.colonySamples.reduce((sum, s) => sum + parseFloat(s.ci), 0) / this.colonySamples.length).toFixed(2);
+      finalCI = `${avgCI} (Ort.)`;
+      finalDI = 'Koloni Analizi';
+    }
+
+    const queen = {
+      id: id,
+      irk: this.elements.qIrk.value,
+      aba: this.elements.qAba.value.trim(),
+      baba: this.elements.qBaba.value.trim(),
+      hircinlik: this.elements.qHircinlik.value,
+      bal: this.elements.qBal.value.trim(),
+      vsh: this.elements.qVsh.value.trim(),
+      ogul: this.elements.qOgul.value,
+      ci: finalCI,
+      di: finalDI,
+      aiRace: this.lastAIResult ? this.lastAIResult.predictedRace : 'Analiz Yapılmadı',
+      date: new Date().toLocaleString('tr-TR')
+    };
+
+    const status = this.storage.saveOrUpdate(queen);
+    alert(status === 'updated' ? `Güncellendi: ${id}` : `Kaydedildi: ${id}`);
+    
+    this.colonySamples = [];
+    if (this.elements.sampleList) {
+      this.elements.sampleList.innerHTML = '<li id="emptyListText" style="padding:12px; text-align:center; color:#9ca3af;">Henüz ölçüm eklenmedi. (Hedef: 10-15 Arı)</li>';
+    }
+    
+    if (this.elements.analyzeColonyBtn) {
+      this.elements.analyzeColonyBtn.disabled = true;
+      this.elements.analyzeColonyBtn.style.opacity = '0.5';
+      this.elements.analyzeColonyBtn.style.cursor = 'not-allowed';
+    }
+    
+    if (this.elements.addSampleBtn) {
+      this.elements.addSampleBtn.disabled = true;
+      this.elements.addSampleBtn.style.opacity = '0.5';
+      this.elements.addSampleBtn.style.cursor = 'not-allowed';
+    }
+    
+    this.renderTable();
+  }
+
+  handleDelete(id) {
+    if (!confirm(`${id} küpeli ana arı silinsin mi?`)) return;
+    this.storage.remove(id);
+    this.renderTable();
+  }
+
+  renderTable() {
+    const list = this.storage.getAll();
+
+    if (list.length === 0) {
+      this.elements.tableContainer.innerHTML =
+        '<p style="color:#9ca3af; text-align:center; padding:20px;">Henüz kayıt yok.</p>';
+      return;
+    }
+
+    let html = `
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Küpe</th>
+              <th>Beyan Irk</th>
+              <th>Rutner AI Tespiti</th>
+              <th>CI</th>
+              <th>Hırçınlık</th>
+              <th>Bal</th>
+              <th style="text-align:center;">Sil</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    list.forEach((q) => {
+      html += `
+        <tr>
+          <td>${q.id}</td>
+          <td>${q.irk}</td>
+          <td style="color:#f59e0b; font-weight:bold;">${q.aiRace || '-'}</td>
+          <td>${q.ci || '-'}</td>
+          <td>${q.hircinlik}</td>
+          <td>${q.bal || '-'}</td>
+          <td style="text-align:center;">
+            <button onclick="window.deleteQueen('${q.id}')" 
+                    style="background:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;">
+              Sil
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table></div>`;
+    this.elements.tableContainer.innerHTML = html;
+  }
+}
