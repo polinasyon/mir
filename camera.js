@@ -23,17 +23,45 @@ export class CameraService {
   }
 
   ensureOpenCV() {
-    if (this.cvReady || this.opencvLoading) {
-      return Promise.resolve(this.cvReady);
+    if (this.cvReady) {
+      return Promise.resolve(true);
+    }
+    if (this.opencvLoading) {
+      // Zaten yükleniyor, mevcut promise'i beklemek yerine basitçe resolve ediyoruz
+      return new Promise((resolve) => {
+        const check = setInterval(() => {
+          if (this.cvReady || !this.opencvLoading) {
+            clearInterval(check);
+            resolve(this.cvReady);
+          }
+        }, 50);
+      });
     }
 
     this.opencvLoading = true;
 
     return new Promise((resolve) => {
+      // Zaten global olarak yüklü mü?
       if (typeof cv !== 'undefined' && cv.Mat) {
         this.cvReady = true;
         this.opencvLoading = false;
+        console.log('[CameraService] OpenCV.js zaten hazır');
         resolve(true);
+        return;
+      }
+
+      // Daha önce eklenmiş script var mı kontrol et
+      const existingScript = document.querySelector('script[src*="opencv.js"]');
+      if (existingScript) {
+        const check = setInterval(() => {
+          if (typeof cv !== 'undefined' && cv.Mat) {
+            clearInterval(check);
+            this.cvReady = true;
+            this.opencvLoading = false;
+            console.log('[CameraService] OpenCV.js hazır (mevcut script)');
+            resolve(true);
+          }
+        }, 50);
         return;
       }
 
@@ -73,6 +101,7 @@ export class CameraService {
 
   async start() {
     try {
+      // OpenCV'yi arka planda yüklemeye devam et (zorunlu değil)
       this.ensureOpenCV();
 
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -139,11 +168,12 @@ export class CameraService {
     const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
     const data = imgData.data;
 
+    // Daha dengeli kontrast hesabı (her 4 pikselde bir)
     let totalVariance = 0;
     let pixelCount = 0;
-    for (let i = 0; i < data.length; i += 16) {
+    for (let i = 0; i < data.length - 16; i += 16) {
       const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3 || avg;
+      const nextAvg = (data[i + 4] + data[i + 5] + data[i + 6]) / 3;
       totalVariance += Math.abs(avg - nextAvg);
       pixelCount++;
     }
@@ -183,7 +213,7 @@ export class CameraService {
   }
 
   detectWingKeypoints(imgData) {
-    if (!this.cvReady) return null;
+    if (!this.cvReady || typeof cv === 'undefined') return null;
 
     let src, gray, blurred, edges, corners;
     try {
@@ -198,6 +228,7 @@ export class CameraService {
       cv.Canny(blurred, edges, 40, 120);
 
       corners = new cv.Mat();
+      // mask olarak edges kullanıyoruz
       cv.goodFeaturesToTrack(gray, corners, 40, 0.01, 18, edges);
 
       if (corners.rows < 3) return null;
