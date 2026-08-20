@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Polinasyon — Kontrol Paneli</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root{--dark-1:#070812;--dark-2:#0b1016;--amber:#f59e0b;--muted:#9ca3af}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial,Helvetica;background:linear-gradient(180deg,#f7fafc,#ffffff);color:#111}
+
+    /* Top header */
+    header.topbar{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));box-shadow:0 6px 18px rgba(2,6,23,0.04);z-index:1100}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .logo{width:36px;height:36px;display:inline-block}
+    .brand .title{font-size:16px}
+    .menu-toggle{position:fixed;top:12px;right:12px;z-index:2200;width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 30px rgba(2,6,23,0.25)}
+    .menu-toggle svg{width:20px;height:20px;fill:var(--amber)}
+
+    .container{max-width:1100px;margin:0 auto;padding:84px 20px 80px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+
+    /* map (hidden by request) */
+    #map{height:360px;border-radius:8px}
+    #mapCard{display:none}
+
+    /* overlay menu (keeps previous overlay) */
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;background:linear-gradient(180deg, rgba(3,6,10,0.92), rgba(6,8,12,0.96));backdrop-filter:blur(4px)}
+    .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s}
+    .menu{position:relative;z-index:2010;display:flex;flex-direction:column;gap:16px;align-items:center;width:100%;max-width:520px;padding:28px;border-radius:16px}
+    .menu-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);color:#fff;font-weight:800;margin-bottom:6px}
+    .menu-btn.pressed{transform:translateY(36px);opacity:0}
+    .menu-btn span.right{color:var(--amber);font-weight:700}
+
+    /* small bottom controls */
+    .bottom-bar{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;z-index:2150;pointer-events:auto}
+    .bottom-panel{display:flex;gap:10px;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));padding:8px;border-radius:999px;box-shadow:0 12px 40px rgba(2,6,23,0.06)}
+    .bottom-panel select{border-radius:8px;padding:8px;border:1px solid rgba(2,6,23,0.06)}
+    .bottom-btn{padding:8px 14px;border-radius:999px;background:linear-gradient(90deg,var(--amber),#f97316);border:none;color:#07101a;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+    .bottom-btn.secondary{background:transparent;border:1px solid rgba(2,6,23,0.06);color:#111}
+    .bottom-panel input[type=file]{display:none}
+
+    /* safety: ensure toggle works even if JS module errored */
+    #menuToggle[aria-label]{outline:none}
+
+    @media(max-width:920px){.grid{grid-template-columns:1fr;}.container{padding:84px 12px 120px}}
+    @media(max-width:520px){.bottom-panel{gap:8px;padding:6px}.bottom-btn{padding:8px 10px}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="/assets/logo.svg" alt="logo" class="logo" />
+      <div class="title">Polinasyon</div>
+    </div>
+    <div aria-hidden="true" style="width:44px"></div>
+  </header>
+
+  <!-- Add a simple inline toggle so menu opens even if module JS fails -->
+  <button id="menuToggle" class="menu-toggle" aria-label="Menüyü Göster" onclick="(function(o){ o.classList.toggle('hidden'); })(document.getElementById('overlay'))">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Overlay (menu) -->
+  <div class="overlay hidden" id="overlay" role="dialog" aria-label="Ana Menü">
+    <svg class="honey-pattern" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;opacity:0.07;pointer-events:none">
+      <defs>
+        <pattern id="hex" width="60" height="52" patternUnits="userSpaceOnUse">
+          <path d="M30 2 L58 14 L58 38 L30 50 L2 38 L2 14 Z" fill="none" stroke="rgba(245,158,11,0.08)" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hex)
